@@ -1,0 +1,29 @@
+{
+  "name": "veterinaria-node",
+  "version": "1.0.0",
+  "description": "Sistema de Gestión Veterinaria - Node.js + PostgreSQL",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "sequelize": "^6.37.3",
+    "pg": "^8.12.0",
+    "pg-hstore": "^2.3.4",
+    "express-session": "^1.18.0",
+    "connect-pg-simple": "^10.0.0",
+    "bcryptjs": "^2.4.3",
+    "multer": "^1.4.5-lts.1",
+    "ejs": "^3.1.10",
+    "dotenv": "^16.4.5",
+    "express-validator": "^7.2.0",
+    "morgan": "^1.10.0",
+    "method-override": "^3.0.0",
+    "express-flash": "^0.0.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  }
+}

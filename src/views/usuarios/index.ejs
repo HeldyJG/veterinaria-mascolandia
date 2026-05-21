@@ -1,0 +1,179 @@
+<%- include('../partials/head', { title: title }) %>
+<%- include('../partials/sidebar') %>
+
+
+  <div class="page-header">
+    <div class="page-header-left">
+      <h2 class="page-subtitle">Usuarios del sistema y perfiles asignados</h2>
+    </div>
+    <div class="page-header-right">
+      <button type="button" class="btn btn-primary" onclick="MascoModal.open('modal-crear-usuario')">
+        <i data-lucide="user-plus"></i>
+        Nuevo Usuario
+      </button>
+    </div>
+  </div>
+
+  <div class="card mb-4">
+    <div class="card-body">
+      <form method="GET" action="/usuarios" class="search-form">
+        <div class="input-group" style="flex-wrap: wrap; gap: 0.5rem;">
+          <input
+            type="text"
+            name="busqueda"
+            class="form-control"
+            placeholder="Buscar por nombre, usuario o correo..."
+            value="<%= busqueda %>"
+            style="min-width: 200px; flex: 1;"
+          />
+          <select name="estado" class="form-control" style="max-width: 180px;">
+            <option value="">Todos</option>
+            <option value="1" <%= estado === '1' ? 'selected' : '' %>>Activos</option>
+            <option value="0" <%= estado === '0' ? 'selected' : '' %>>Inactivos</option>
+          </select>
+          <button type="submit" class="btn btn-secondary">
+            <i data-lucide="search"></i>
+            Buscar
+          </button>
+          <% if (busqueda || estado !== '') { %>
+            <a href="/usuarios" class="btn btn-outline">
+              <i data-lucide="x"></i>
+              Limpiar
+            </a>
+          <% } %>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">
+        Usuarios
+        <span class="badge badge-info"><%= totalRegistros %></span>
+      </span>
+    </div>
+    <div class="card-body p-0">
+      <% if (usuarios.length === 0) { %>
+        <div class="empty-state">
+          <i data-lucide="users"></i>
+          <p>No se encontraron usuarios.</p>
+          <button type="button" class="btn btn-primary" onclick="MascoModal.open('modal-crear-usuario')">Registrar usuario</button>
+        </div>
+      <% } else { %>
+        <div class="table-responsive">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Usuario</th>
+                <th>Correo</th>
+                <th>Perfil</th>
+                <th>Estado</th>
+                <th class="text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% usuarios.forEach(u => { %>
+                <tr>
+                  <td class="fw-semibold"><%= u.nombre %></td>
+                  <td><code><%= u.usuario %></code></td>
+                  <td><%= u.correo || '—' %></td>
+                  <td>
+                    <% if (u.perfil) { %>
+                      <span class="badge badge-info"><%= u.perfil.nombre %></span>
+                    <% } else { %>
+                      <span class="text-muted">—</span>
+                    <% } %>
+                  </td>
+                  <td>
+                    <% if (u.estado === 1) { %>
+                      <span class="badge badge-success">Activo</span>
+                    <% } else { %>
+                      <span class="badge badge-danger">Inactivo</span>
+                    <% } %>
+                  </td>
+                  <td class="text-center" style="white-space: nowrap;">
+                    <a href="/usuarios/<%= u.id %>/editar" class="btn btn-sm btn-warning" title="Editar">
+                      <i data-lucide="pencil"></i>
+                    </a>
+                    <a href="/usuarios/<%= u.id %>/cambiar-clave" class="btn btn-sm btn-secondary" title="Cambiar contraseña">
+                      <i data-lucide="key"></i>
+                    </a>
+                    <% if (u.estado === 1 && u.id !== usuarioActualId) { %>
+                      <form
+                        id="form-desactivar-<%= u.id %>"
+                        action="/usuarios/<%= u.id %>"
+                        method="POST"
+                        style="display: inline;"
+                      >
+                        <input type="hidden" name="_method" value="DELETE">
+                        <button
+                          type="button"
+                          class="btn btn-sm btn-danger"
+                          title="Desactivar"
+                          onclick="confirmarDesactivar(<%= u.id %>, <%= JSON.stringify(u.nombre) %>)"
+                        >
+                          <i data-lucide="user-x"></i>
+                        </button>
+                      </form>
+                    <% } %>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+
+        <% if (totalPaginas > 1) { %>
+          <div class="pagination-wrapper">
+            <div class="pagination-info">
+              Página <%= pagina %> de <%= totalPaginas %> — <%= totalRegistros %> registros
+            </div>
+            <div class="pagination">
+              <% if (pagina > 1) { %>
+                <a href="/usuarios?pagina=<%= pagina - 1 %>&busqueda=<%= busqueda %>&estado=<%= estado %>" class="page-link">
+                  <i data-lucide="chevron-left"></i>
+                </a>
+              <% } %>
+              <% for (let i = Math.max(1, pagina - 2); i <= Math.min(totalPaginas, pagina + 2); i++) { %>
+                <a href="/usuarios?pagina=<%= i %>&busqueda=<%= busqueda %>&estado=<%= estado %>"
+                   class="page-link <%= i === pagina ? 'active' : '' %>"><%= i %></a>
+              <% } %>
+              <% if (pagina < totalPaginas) { %>
+                <a href="/usuarios?pagina=<%= pagina + 1 %>&busqueda=<%= busqueda %>&estado=<%= estado %>" class="page-link">
+                  <i data-lucide="chevron-right"></i>
+                </a>
+              <% } %>
+            </div>
+          </div>
+        <% } %>
+      <% } %>
+    </div>
+  </div>
+
+
+<script>
+  function confirmarDesactivar(id, nombre) {
+    Swal.fire({
+      title: '¿Desactivar usuario?',
+      html: 'Se desactivará a <strong>' + nombre + '</strong> y se cerrarán sus sesiones activas.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#64748b',
+      confirmButtonText: 'Sí, desactivar',
+      cancelButtonText: 'Cancelar',
+      background: '#1e293b',
+      color: '#f8fafc',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        document.getElementById('form-desactivar-' + id).submit();
+      }
+    });
+  }
+</script>
+
+<%- include('../partials/modals/usuario-crear') %>
+
+<%- include('../partials/footer') %>

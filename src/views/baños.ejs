@@ -1,0 +1,512 @@
+<%- include('partials/head') %>
+  <%- include('partials/sidebar') %>
+
+  <!-- Panel superior de Stock & Estado -->
+  <div class="grid-stats">
+    <!-- Champú -->
+    <div class="stat-card">
+      <div style="display: flex; flex-direction: column; width: 100%;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <i data-lucide="droplet" style="color: var(--primary);"></i>
+            <span style="font-weight: 600;">Stock Shampoo</span>
+          </div>
+          <button onclick="reponer('shampoo')" class="btn-premium-sm primary" style="padding: 0.25rem 0.6rem; font-size: 0.75rem;">
+            <i data-lucide="refresh-cw" style="width: 12px; height: 12px;"></i> Reponer
+          </button>
+        </div>
+        <div style="background-color: rgba(255,255,255,0.05); border-radius: 50px; height: 10px; width: 100%; overflow: hidden;">
+          <div id="bar-shampoo" style="background-color: var(--primary); height: 100%; width: 0%; transition: width 0.5s ease;"></div>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;">
+          <span id="txt-shampoo-actual"><%= parseFloat(stock.shampooActual).toFixed(2) %> ml</span>
+          <span id="txt-shampoo-max"><%= parseFloat(stock.shampooMax).toFixed(2) %> ml</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Acondicionador -->
+    <div class="stat-card">
+      <div style="display: flex; flex-direction: column; width: 100%;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <i data-lucide="sparkles" style="color: var(--secondary);"></i>
+            <span style="font-weight: 600;">Stock Acondicionador</span>
+          </div>
+          <button onclick="reponer('acondicionador')" class="btn-premium-sm primary" style="background-color: var(--secondary); padding: 0.25rem 0.6rem; font-size: 0.75rem;">
+            <i data-lucide="refresh-cw" style="width: 12px; height: 12px;"></i> Reponer
+          </button>
+        </div>
+        <div style="background-color: rgba(255,255,255,0.05); border-radius: 50px; height: 10px; width: 100%; overflow: hidden;">
+          <div id="bar-acond" style="background-color: var(--secondary); height: 100%; width: 0%; transition: width 0.5s ease;"></div>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;">
+          <span id="txt-acond-actual"><%= parseFloat(stock.acondicionadorActual).toFixed(2) %> ml</span>
+          <span id="txt-acond-max"><%= parseFloat(stock.acondicionadorMax).toFixed(2) %> ml</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Baños hoy -->
+    <div class="stat-card">
+      <div class="stat-icon warning">
+        <i data-lucide="scissors" style="width: 28px; height: 28px;"></i>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value" id="txt-hoy-count"><%= hoyCount %></div>
+        <div class="stat-label">Baños de Hoy</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenedor Principal -->
+  <div class="card-premium">
+    <div class="card-premium-header">
+      <div class="card-premium-title">Lista de Servicios de Estética</div>
+      <button onclick="nuevoBano()" class="btn-premium-sm primary">
+        <i data-lucide="plus" style="width: 16px; height: 16px;"></i>
+        <span>Nuevo Baño</span>
+      </button>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table-premium" id="tabla-banos">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Mascota</th>
+            <th>Atendido por</th>
+            <th>Servicio</th>
+            <th>Tamaño</th>
+            <th>Shampoo (ml)</th>
+            <th>Acond. (ml)</th>
+            <th>Precio</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="lista-cuerpo-banos">
+          <% if (banos && banos.length > 0) { %>
+            <% banos.forEach(b => { %>
+              <%
+                let badgeClass = 'badge-primary';
+                if (b.estado === 'FINALIZADO' || b.estado === 'ENTREGADO') badgeClass = 'badge-success';
+                else if (b.estado === 'PENDIENTE') badgeClass = 'badge-warning';
+              %>
+              <tr>
+                <td><%= b.fecha %></td>
+                <td><span style="font-weight:600; color:var(--primary);"><%= b.mascota ? b.mascota.nombre : 'N/A' %></span></td>
+                <td><%= b.usuario ? b.usuario.nombre : 'N/A' %></td>
+                <td><%= b.tipoServicio || '—' %></td>
+                <td><span class="badge-premium badge-primary"><%= b.tamanoPerro || '—' %></span></td>
+                <td><%= b.mlShampoo != null ? b.mlShampoo : '—' %></td>
+                <td><%= b.mlAcondicionador != null ? b.mlAcondicionador : '—' %></td>
+                <td style="font-weight:600;">S/. <%= b.precio != null ? parseFloat(b.precio).toFixed(2) : '0.00' %></td>
+                <td><span class="badge-premium <%= badgeClass %>"><%= b.estado %></span></td>
+                <td>
+                  <div style="display:flex; gap:0.5rem;">
+                    <button type="button" class="btn-action edit" onclick="editarBano(<%= b.id %>)" title="Editar"><i data-lucide="edit-3" style="width:16px; height:16px;"></i></button>
+                    <button type="button" class="btn-action" onclick="toggleEstado(<%= b.id %>)" title="Cambiar Estado"><i data-lucide="play" style="width:16px; height:16px;"></i></button>
+                    <button type="button" class="btn-action delete" onclick="eliminarBano(<%= b.id %>)" title="Eliminar"><i data-lucide="trash-2" style="width:16px; height:16px;"></i></button>
+                  </div>
+                </td>
+              </tr>
+            <% }) %>
+          <% } else { %>
+            <tr>
+              <td colspan="10" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                No hay servicios de baños registrados. Use «Nuevo Baño» para agregar uno.
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modal Moderno (Inyectado en la misma página) -->
+  <div id="modal-bano" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); z-index: 1000; align-items: center; justify-content: center; padding: 1rem;">
+    <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); width: 600px; max-width: 100%; box-shadow: 0 20px 40px rgba(0,0,0,0.5); overflow: hidden; display: flex; flex-direction: column;">
+      <div style="padding: 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+        <h3 id="modal-titulo" style="font-size: 1.25rem;">Registrar Servicio de Baño</h3>
+        <button onclick="cerrarModal()" style="background: transparent; border: none; color: var(--text-muted); cursor: pointer; display: flex; align-items: center;">
+          <i data-lucide="x" style="width: 24px; height: 24px;"></i>
+        </button>
+      </div>
+      <form id="form-bano" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; overflow-y: auto; max-height: 70vh;">
+        <input type="hidden" id="bano-id">
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label" for="form-mascota">Mascota</label>
+            <select id="form-mascota" class="form-control" style="padding-left: 1rem;" required>
+              <option value="">Seleccione...</option>
+              <% mascotas.forEach(m => { %>
+                <option value="<%= m.id %>"><%= m.nombre %></option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="form-usuario">Atendido Por</label>
+            <select id="form-usuario" class="form-control" style="padding-left: 1rem;" required>
+              <option value="">Seleccione...</option>
+              <% usuarios.forEach(u => { %>
+                <option value="<%= u.id %>"><%= u.nombre %></option>
+              <% }) %>
+            </select>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label" for="form-fecha">Fecha</label>
+            <input type="date" id="form-fecha" class="form-control" style="padding-left: 1rem;" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="form-servicio">Tipo de Servicio</label>
+            <input type="text" id="form-servicio" class="form-control" style="padding-left: 1rem;" placeholder="Ej. Higiene Completa" required>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label" for="form-tamano">Tamaño del Perro</label>
+            <select id="form-tamano" class="form-control" style="padding-left: 1rem;" onchange="calcularMl()" required>
+              <option value="">Seleccione...</option>
+              <option value="PEQUEÑO">Pequeño (30ml)</option>
+              <option value="MEDIANO">Mediano (60ml)</option>
+              <option value="GRANDE">Grande (100ml)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="form-peso">Peso Mascota (Kg)</label>
+            <input type="number" step="0.01" id="form-peso" class="form-control" style="padding-left: 1rem;" placeholder="Peso">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label" for="form-shampoo">Shampoo Usado (ml)</label>
+            <input type="number" step="0.01" id="form-shampoo" class="form-control" style="padding-left: 1rem;" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="form-acondicionador">Acondicionador Usado (ml)</label>
+            <input type="number" step="0.01" id="form-acondicionador" class="form-control" style="padding-left: 1rem;" required>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label" for="form-precio">Precio Cobrado (S/.)</label>
+            <input type="number" step="0.01" id="form-precio" class="form-control" style="padding-left: 1rem;" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="form-estado">Estado</label>
+            <select id="form-estado" class="form-control" style="padding-left: 1rem;" required>
+              <option value="PENDIENTE">Pendiente</option>
+              <option value="EN_PROCESO">En Proceso</option>
+              <option value="FINALIZADO">Finalizado</option>
+              <option value="ENTREGADO">Entregado</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="form-observaciones">Observaciones</label>
+          <textarea id="form-observaciones" class="form-control" style="padding-left: 1rem; height: 80px;" placeholder="Detalles u observaciones del baño"></textarea>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 1rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem; margin-top: 1rem;">
+          <button type="button" onclick="cerrarModal()" class="btn-premium-sm" style="border: 1px solid var(--border-color); color: var(--text-main);">Cancelar</button>
+          <button type="submit" class="btn-premium-sm primary">Guardar Registro</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = '<%= typeof apiBase !== "undefined" ? apiBase : "/banos" %>';
+
+    function badgeClassForEstado(estado) {
+      if (estado === 'FINALIZADO' || estado === 'ENTREGADO') return 'badge-success';
+      if (estado === 'PENDIENTE') return 'badge-warning';
+      return 'badge-primary';
+    }
+
+    function renderFilaBano(b) {
+      const badgeClass = badgeClassForEstado(b.estado);
+      return `
+        <tr>
+          <td>${b.fecha}</td>
+          <td><span style="font-weight:600; color:var(--primary);">${b.mascota ? b.mascota.nombre : 'N/A'}</span></td>
+          <td>${b.usuario ? b.usuario.nombre : 'N/A'}</td>
+          <td>${b.tipoServicio || '—'}</td>
+          <td><span class="badge-premium badge-primary">${b.tamanoPerro || '—'}</span></td>
+          <td>${b.mlShampoo ?? '—'}</td>
+          <td>${b.mlAcondicionador ?? '—'}</td>
+          <td style="font-weight:600;">S/. ${b.precio || '0.00'}</td>
+          <td><span class="badge-premium ${badgeClass}">${b.estado}</span></td>
+          <td>
+            <div style="display:flex; gap:0.5rem;">
+              <button type="button" class="btn-action edit" onclick="editarBano(${b.id})" title="Editar"><i data-lucide="edit-3" style="width:16px; height:16px;"></i></button>
+              <button type="button" class="btn-action" onclick="toggleEstado(${b.id})" title="Cambiar Estado"><i data-lucide="play" style="width:16px; height:16px;"></i></button>
+              <button type="button" class="btn-action delete" onclick="eliminarBano(${b.id})" title="Eliminar"><i data-lucide="trash-2" style="width:16px; height:16px;"></i></button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }
+
+    function aplicarBarrasStock(stock, hoyCount) {
+      document.getElementById('txt-shampoo-actual').innerText = parseFloat(stock.shampooActual).toFixed(2) + ' ml';
+      document.getElementById('txt-shampoo-max').innerText = parseFloat(stock.shampooMax).toFixed(2) + ' ml';
+      const pShampoo = (parseFloat(stock.shampooActual) / parseFloat(stock.shampooMax)) * 100;
+      document.getElementById('bar-shampoo').style.width = Math.min(100, Math.max(0, pShampoo)) + '%';
+
+      document.getElementById('txt-acond-actual').innerText = parseFloat(stock.acondicionadorActual).toFixed(2) + ' ml';
+      document.getElementById('txt-acond-max').innerText = parseFloat(stock.acondicionadorMax).toFixed(2) + ' ml';
+      const pAcond = (parseFloat(stock.acondicionadorActual) / parseFloat(stock.acondicionadorMax)) * 100;
+      document.getElementById('bar-acond').style.width = Math.min(100, Math.max(0, pAcond)) + '%';
+
+      document.getElementById('txt-hoy-count').innerText = hoyCount;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      aplicarBarrasStock(
+        {
+          shampooActual: <%= stock.shampooActual %>,
+          shampooMax: <%= stock.shampooMax %>,
+          acondicionadorActual: <%= stock.acondicionadorActual %>,
+          acondicionadorMax: <%= stock.acondicionadorMax %>
+        },
+        <%= hoyCount %>
+      );
+      
+      document.getElementById('form-bano').addEventListener('submit', function(e) {
+        e.preventDefault();
+        guardarBano();
+      });
+    });
+
+    // Función para actualizar barra de progreso visual de stock
+    async function cargarStock() {
+      try {
+        const res = await fetch(API_BASE + '/api/stock');
+        if (!res.ok) throw new Error('Respuesta HTTP ' + res.status);
+        const json = await res.json();
+        if (json.success) {
+          aplicarBarrasStock(json.data, json.hoyCount);
+        }
+      } catch (error) {
+        console.error('Error al cargar stock:', error);
+      }
+    }
+
+    // Listar registros en la tabla
+    async function cargarRegistros() {
+      const tbody = document.getElementById('lista-cuerpo-banos');
+      try {
+        const res = await fetch(API_BASE + '/api/listar');
+        if (!res.ok) throw new Error('Respuesta HTTP ' + res.status);
+        const contentType = res.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) {
+          throw new Error('La sesión pudo haber expirado. Recargue la página o vuelva a iniciar sesión.');
+        }
+        const json = await res.json();
+        tbody.innerHTML = '';
+
+        if (json.success && json.data.length > 0) {
+          tbody.innerHTML = json.data.map(renderFilaBano).join('');
+          if (window.lucide) lucide.createIcons();
+        } else {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="10" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                No hay servicios de baños registrados.
+              </td>
+            </tr>
+          `;
+        }
+      } catch (error) {
+        console.error('Error al cargar registros:', error);
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="10" style="text-align: center; color: var(--danger); padding: 2rem;">
+              No se pudo actualizar la lista: ${error.message}
+            </td>
+          </tr>
+        `;
+      }
+    }
+
+    // Reponer stock
+    async function reponer(tipo) {
+      const confirm = await Swal.fire({
+        title: `¿Reponer stock de ${tipo}?`,
+        text: `Se llenará el stock al máximo permitido.`,
+        icon: 'question',
+        showCancelButton: true,
+        background: '#1e293b',
+        color: '#f8fafc',
+        confirmButtonColor: '#6366f1',
+        cancelButtonColor: '#475569',
+        confirmButtonText: 'Sí, reponer'
+      });
+
+      if(confirm.isConfirmed) {
+        try {
+          const res = await fetch(`${API_BASE}/api/reponer/${tipo}`, { method: 'POST' });
+          const json = await res.json();
+          if(json.success) {
+            Swal.fire({ icon: 'success', title: 'Completado', text: json.message, background: '#1e293b', color: '#f8fafc' });
+            cargarStock();
+          } else {
+            Swal.fire({ icon: 'error', title: 'Error', text: json.message, background: '#1e293b', color: '#f8fafc' });
+          }
+        } catch(e) {
+          Swal.fire({ icon: 'error', title: 'Error', text: 'Error de servidor', background: '#1e293b', color: '#f8fafc' });
+        }
+      }
+    }
+
+    // Autocalcular mililitros por tamaño
+    function calcularMl() {
+      const tamano = document.getElementById('form-tamano').value;
+      let ml = 0;
+      if (tamano === 'PEQUEÑO') ml = 30;
+      if (tamano === 'MEDIANO') ml = 60;
+      if (tamano === 'GRANDE') ml = 100;
+      
+      document.getElementById('form-shampoo').value = ml;
+      document.getElementById('form-acondicionador').value = ml;
+    }
+
+    // Abrir Modal
+    function nuevoBano() {
+      document.getElementById('modal-titulo').innerText = 'Registrar Servicio de Baño';
+      document.getElementById('bano-id').value = '';
+      document.getElementById('form-bano').reset();
+      document.getElementById('form-fecha').value = new Date().toISOString().split('T')[0];
+      document.getElementById('modal-bano').style.display = 'flex';
+    }
+
+    function cerrarModal() {
+      document.getElementById('modal-bano').style.display = 'none';
+    }
+
+    // Guardar / Crear
+    async function guardarBano() {
+      const id = document.getElementById('bano-id').value;
+      const payload = {
+        id: id || null,
+        idMascota: document.getElementById('form-mascota').value,
+        idUsuario: document.getElementById('form-usuario').value,
+        fecha: document.getElementById('form-fecha').value,
+        tipoServicio: document.getElementById('form-servicio').value,
+        tamanoPerro: document.getElementById('form-tamano').value,
+        pesoMascota: document.getElementById('form-peso').value,
+        mlShampoo: document.getElementById('form-shampoo').value,
+        mlAcondicionador: document.getElementById('form-acondicionador').value,
+        precio: document.getElementById('form-precio').value,
+        estado: document.getElementById('form-estado').value,
+        observaciones: document.getElementById('form-observaciones').value
+      };
+
+      try {
+        const res = await fetch(API_BASE + '/api/guardar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const json = await res.json();
+        if(json.success) {
+          cerrarModal();
+          Swal.fire({ icon: 'success', title: 'Guardado', text: json.message, background: '#1e293b', color: '#f8fafc', confirmButtonColor: '#6366f1' });
+          cargarStock();
+          cargarRegistros();
+        } else {
+          Swal.fire({ icon: 'error', title: 'Error', text: json.message, background: '#1e293b', color: '#f8fafc' });
+        }
+      } catch(e) {
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Error al enviar los datos', background: '#1e293b', color: '#f8fafc' });
+      }
+    }
+
+    // Editar
+    async function editarBano(id) {
+      try {
+        const res = await fetch(`${API_BASE}/api/${id}`);
+        const json = await res.json();
+        if(json.success) {
+          const b = json.data;
+          document.getElementById('modal-titulo').innerText = 'Editar Registro de Baño';
+          document.getElementById('bano-id').value = b.id;
+          document.getElementById('form-mascota').value = b.idMascota;
+          document.getElementById('form-usuario').value = b.idUsuario;
+          document.getElementById('form-fecha').value = b.fecha;
+          document.getElementById('form-servicio').value = b.tipoServicio;
+          document.getElementById('form-tamano').value = b.tamanoPerro;
+          document.getElementById('form-peso').value = b.pesoMascota;
+          document.getElementById('form-shampoo').value = b.mlShampoo;
+          document.getElementById('form-acondicionador').value = b.mlAcondicionador;
+          document.getElementById('form-precio').value = b.precio;
+          document.getElementById('form-estado').value = b.estado;
+          document.getElementById('form-observaciones').value = b.observaciones || '';
+          
+          document.getElementById('modal-bano').style.display = 'flex';
+        }
+      } catch(e) {
+        Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo cargar la información del baño', background: '#1e293b', color: '#f8fafc' });
+      }
+    }
+
+    // Cambiar estado rápido
+    async function toggleEstado(id) {
+      try {
+        const res = await fetch(`${API_BASE}/api/cambiar-estado/${id}`, { method: 'POST' });
+        const json = await res.json();
+        if(json.success) {
+          Swal.fire({ icon: 'success', title: 'Estado Actualizado', text: json.message, background: '#1e293b', color: '#f8fafc', confirmButtonColor: '#6366f1', timer: 1500 });
+          cargarStock();
+          cargarRegistros();
+        } else {
+          Swal.fire({ icon: 'error', title: 'Error', text: json.message, background: '#1e293b', color: '#f8fafc' });
+        }
+      } catch(e) {
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Error al cambiar de estado', background: '#1e293b', color: '#f8fafc' });
+      }
+    }
+
+    // Eliminar
+    async function eliminarBano(id) {
+      const confirm = await Swal.fire({
+        title: '¿Estás seguro?',
+        text: 'Esta acción no se puede deshacer.',
+        icon: 'warning',
+        showCancelButton: true,
+        background: '#1e293b',
+        color: '#f8fafc',
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#475569',
+        confirmButtonText: 'Sí, eliminar'
+      });
+
+      if(confirm.isConfirmed) {
+        try {
+          const res = await fetch(`${API_BASE}/api/eliminar/${id}`, { method: 'DELETE' });
+          const json = await res.json();
+          if(json.success) {
+            Swal.fire({ icon: 'success', title: 'Eliminado', text: json.message, background: '#1e293b', color: '#f8fafc' });
+            cargarStock();
+            cargarRegistros();
+          } else {
+            Swal.fire({ icon: 'error', title: 'Error', text: json.message, background: '#1e293b', color: '#f8fafc' });
+          }
+        } catch(e) {
+          Swal.fire({ icon: 'error', title: 'Error', text: 'Error al eliminar el registro', background: '#1e293b', color: '#f8fafc' });
+        }
+      }
+    }
+  </script>
+
+  <%- include('partials/footer') %>

@@ -1,0 +1,61 @@
+<%- include('../modal-start', { modalId: 'modal-crear-producto', modalTitle: 'Registrar producto', modalIcon: 'package-plus', modalSize: 'modal-lg' }) %>
+<form method="POST" action="/productos" novalidate
+      data-ajax-modal="true" data-modal-id="modal-crear-producto">
+  <div class="form-group">
+    <label for="modal-prod-nombre" class="form-label">Nombre <span class="text-danger">*</span></label>
+    <input type="text" id="modal-prod-nombre" name="nombre" class="form-control" maxlength="150" required>
+  </div>
+  <div class="form-group">
+    <label for="modal-prod-codigo" class="form-label">Código de barras</label>
+    <input type="text" id="modal-prod-codigo" name="codigoBarras" class="form-control" maxlength="50">
+  </div>
+  <div class="form-row-2">
+    <div class="form-group">
+      <label for="modal-prod-cat" class="form-label">Categoría <span class="text-danger">*</span></label>
+      <select id="modal-prod-cat" name="idCategoria" class="form-control" required>
+        <option value="">— Seleccionar —</option>
+        <% (categorias || []).forEach(cat => { %>
+          <option value="<%= cat.id %>"><%= cat.nombre %></option>
+        <% }) %>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="modal-prod-prov" class="form-label">Proveedor</label>
+      <select id="modal-prod-prov" name="idProveedor" class="form-control">
+        <option value="">— Sin proveedor —</option>
+        <% (proveedores || []).forEach(prov => { %>
+          <option value="<%= prov.id %>"><%= prov.nombreEmpresa %></option>
+        <% }) %>
+      </select>
+    </div>
+  </div>
+  <div class="form-row-2">
+    <div class="form-group">
+      <label for="modal-prod-pcompra" class="form-label">Precio compra (S/.) <span class="text-danger">*</span></label>
+      <input type="number" id="modal-prod-pcompra" name="precioCompra" class="form-control" min="0" step="0.01" required>
+    </div>
+    <div class="form-group">
+      <label for="modal-prod-pventa" class="form-label">Precio venta (S/.) <span class="text-danger">*</span></label>
+      <input type="number" id="modal-prod-pventa" name="precioVenta" class="form-control" min="0" step="0.01" required>
+    </div>
+  </div>
+  <div class="form-row-2">
+    <div class="form-group">
+      <label for="modal-prod-stock" class="form-label">Stock actual <span class="text-danger">*</span></label>
+      <input type="number" id="modal-prod-stock" name="stockActual" class="form-control" min="0" step="1" required>
+    </div>
+    <div class="form-group">
+      <label for="modal-prod-min" class="form-label">Stock mínimo <span class="text-danger">*</span></label>
+      <input type="number" id="modal-prod-min" name="stockMinimo" class="form-control" min="0" step="1" value="5" required>
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="modal-prod-desc" class="form-label">Descripción</label>
+    <textarea id="modal-prod-desc" name="descripcion" class="form-control" rows="2"></textarea>
+  </div>
+  <div class="form-actions">
+    <button type="button" class="btn btn-outline" data-modal-close="modal-crear-producto">Cancelar</button>
+    <button type="submit" class="btn btn-primary"><i data-lucide="save"></i> Registrar</button>
+  </div>
+</form>
+<%- include('../modal-end') %>

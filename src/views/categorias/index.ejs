@@ -1,0 +1,242 @@
+<%- include('../partials/head') %>
+  <%- include('../partials/sidebar') %>
+
+  <!-- Contenedor Principal -->
+  <div class="card-premium">
+    <div class="card-premium-header">
+      <div class="card-premium-title">
+        <i data-lucide="tag" style="width:20px; height:20px; margin-right:0.5rem; vertical-align:middle;"></i>
+        Categorías de Productos
+      </div>
+      <button onclick="abrirModalCrear()" class="btn-premium-sm primary">
+        <i data-lucide="plus" style="width: 16px; height: 16px;"></i>
+        <span>Nueva Categoría</span>
+      </button>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table-premium">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Nombre</th>
+            <th>Descripción</th>
+            <th>Total Productos</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (categorias && categorias.length > 0) { %>
+            <% categorias.forEach((cat, index) => { %>
+              <tr>
+                <td><%= index + 1 %></td>
+                <td style="font-weight: 600; color: var(--primary);"><%= cat.nombre %></td>
+                <td style="color: var(--text-muted);">
+                  <%= cat.descripcion ? cat.descripcion : '<em>Sin descripción</em>' %>
+                </td>
+                <td>
+                  <span class="badge-premium <%= cat.totalProductos > 0 ? 'badge-success' : 'badge-primary' %>">
+                    <%= cat.totalProductos %> producto<%= cat.totalProductos !== 1 ? 's' : '' %>
+                  </span>
+                </td>
+                <td>
+                  <div style="display: flex; gap: 0.5rem;">
+                    <button
+                      class="btn-action edit"
+                      onclick="abrirModalEditar(<%= cat.id %>, '<%= cat.nombre.replace(/'/g, "\\'") %>', '<%= cat.descripcion ? cat.descripcion.replace(/'/g, "\\'") : '' %>')"
+                      title="Editar categoría"
+                    >
+                      <i data-lucide="edit-3" style="width: 16px; height: 16px;"></i>
+                    </button>
+                    <button
+                      class="btn-action delete"
+                      onclick="confirmarEliminar(<%= cat.id %>, '<%= cat.nombre.replace(/'/g, "\\'") %>', <%= cat.totalProductos %>)"
+                      title="Eliminar categoría"
+                    >
+                      <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            <% }) %>
+          <% } else { %>
+            <tr>
+              <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                <i data-lucide="inbox" style="width: 32px; height: 32px; display: block; margin: 0 auto 0.5rem;"></i>
+                No hay categorías registradas.
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===================== MODAL CREAR ===================== -->
+  <div id="modal-crear" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); z-index: 1000; align-items: center; justify-content: center; padding: 1rem;">
+    <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); width: 500px; max-width: 100%; box-shadow: 0 20px 40px rgba(0,0,0,0.5); overflow: hidden;">
+      <div style="padding: 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="font-size: 1.15rem; margin: 0;">
+          <i data-lucide="plus-circle" style="width:18px; height:18px; vertical-align:middle; margin-right:0.4rem;"></i>
+          Nueva Categoría
+        </h3>
+        <button onclick="cerrarModalCrear()" style="background: transparent; border: none; color: var(--text-muted); cursor: pointer;">
+          <i data-lucide="x" style="width: 22px; height: 22px;"></i>
+        </button>
+      </div>
+      <form action="/categorias-productos" method="POST" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+        <div class="form-group">
+          <label class="form-label" for="crear-nombre">Nombre <span style="color: var(--danger);">*</span></label>
+          <input
+            type="text"
+            id="crear-nombre"
+            name="nombre"
+            class="form-control"
+            placeholder="Ej. Medicamentos, Accesorios..."
+            minlength="3"
+            maxlength="100"
+            required
+          >
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="crear-descripcion">Descripción</label>
+          <textarea
+            id="crear-descripcion"
+            name="descripcion"
+            class="form-control"
+            placeholder="Descripción opcional de la categoría..."
+            maxlength="255"
+            style="height: 90px; resize: vertical;"
+          ></textarea>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 1rem; border-top: 1px solid var(--border-color); padding-top: 1.25rem; margin-top: 0.5rem;">
+          <button type="button" onclick="cerrarModalCrear()" class="btn-premium-sm" style="border: 1px solid var(--border-color); color: var(--text-main);">
+            Cancelar
+          </button>
+          <button type="submit" class="btn-premium-sm primary">
+            <i data-lucide="save" style="width:15px; height:15px;"></i>
+            Guardar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===================== MODAL EDITAR ===================== -->
+  <div id="modal-editar" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); z-index: 1000; align-items: center; justify-content: center; padding: 1rem;">
+    <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); width: 500px; max-width: 100%; box-shadow: 0 20px 40px rgba(0,0,0,0.5); overflow: hidden;">
+      <div style="padding: 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="font-size: 1.15rem; margin: 0;">
+          <i data-lucide="edit-3" style="width:18px; height:18px; vertical-align:middle; margin-right:0.4rem;"></i>
+          Editar Categoría
+        </h3>
+        <button onclick="cerrarModalEditar()" style="background: transparent; border: none; color: var(--text-muted); cursor: pointer;">
+          <i data-lucide="x" style="width: 22px; height: 22px;"></i>
+        </button>
+      </div>
+      <form id="form-editar" action="" method="POST" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+        <input type="hidden" name="_method" value="PUT">
+        <div class="form-group">
+          <label class="form-label" for="editar-nombre">Nombre <span style="color: var(--danger);">*</span></label>
+          <input
+            type="text"
+            id="editar-nombre"
+            name="nombre"
+            class="form-control"
+            minlength="3"
+            maxlength="100"
+            required
+          >
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="editar-descripcion">Descripción</label>
+          <textarea
+            id="editar-descripcion"
+            name="descripcion"
+            class="form-control"
+            maxlength="255"
+            style="height: 90px; resize: vertical;"
+          ></textarea>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 1rem; border-top: 1px solid var(--border-color); padding-top: 1.25rem; margin-top: 0.5rem;">
+          <button type="button" onclick="cerrarModalEditar()" class="btn-premium-sm" style="border: 1px solid var(--border-color); color: var(--text-main);">
+            Cancelar
+          </button>
+          <button type="submit" class="btn-premium-sm primary">
+            <i data-lucide="save" style="width:15px; height:15px;"></i>
+            Actualizar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===================== FORM ELIMINAR (oculto) ===================== -->
+  <form id="form-eliminar" action="" method="POST" style="display: none;">
+    <input type="hidden" name="_method" value="DELETE">
+  </form>
+
+  <script>
+    // ---- Modal Crear ----
+    function abrirModalCrear() {
+      document.getElementById('modal-crear').style.display = 'flex';
+    }
+    function cerrarModalCrear() {
+      document.getElementById('modal-crear').style.display = 'none';
+    }
+
+    // ---- Modal Editar ----
+    function abrirModalEditar(id, nombre, descripcion) {
+      document.getElementById('editar-nombre').value = nombre;
+      document.getElementById('editar-descripcion').value = descripcion;
+      document.getElementById('form-editar').action = '/categorias-productos/' + id;
+      document.getElementById('modal-editar').style.display = 'flex';
+    }
+    function cerrarModalEditar() {
+      document.getElementById('modal-editar').style.display = 'none';
+    }
+
+    // ---- Eliminar con SweetAlert2 ----
+    function confirmarEliminar(id, nombre, totalProductos) {
+      if (totalProductos > 0) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'No se puede eliminar',
+          html: `La categoría <strong>${nombre}</strong> tiene <strong>${totalProductos}</strong> producto(s) activo(s) asociado(s).<br>Reasigna o desactiva los productos antes de eliminar la categoría.`,
+          background: '#1e293b',
+          color: '#f8fafc',
+          confirmButtonColor: '#6366f1',
+        });
+        return;
+      }
+
+      Swal.fire({
+        title: '¿Eliminar categoría?',
+        html: `Se desactivará la categoría <strong>${nombre}</strong>. Esta acción puede revertirse desde la base de datos.`,
+        icon: 'warning',
+        showCancelButton: true,
+        background: '#1e293b',
+        color: '#f8fafc',
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#475569',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          const form = document.getElementById('form-eliminar');
+          form.action = '/categorias-productos/' + id;
+          form.submit();
+        }
+      });
+    }
+
+    // Cerrar modales al hacer clic fuera
+    document.getElementById('modal-crear').addEventListener('click', function(e) {
+      if (e.target === this) cerrarModalCrear();
+    });
+    document.getElementById('modal-editar').addEventListener('click', function(e) {
+      if (e.target === this) cerrarModalEditar();
+    });
+  </script>
+
+  <%- include('../partials/footer') %>

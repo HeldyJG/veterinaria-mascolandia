@@ -1,0 +1,112 @@
+<%- include('../partials/head', { title: title }) %>
+<%- include('../partials/sidebar') %>
+
+
+  <div class="page-header">
+    <div class="page-header-left">
+      <h2 class="page-subtitle">Registre productos y complete la venta</h2>
+    </div>
+    <div class="page-header-right">
+      <a href="/ventas" class="btn btn-outline">
+        <i data-lucide="arrow-left"></i>
+        Ver historial
+      </a>
+    </div>
+  </div>
+
+  <form id="form-venta" action="/ventas" method="POST">
+    <input type="hidden" name="productos" id="productos-json" value="[]">
+
+    <div class="pos-layout">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title"><i data-lucide="search"></i> Buscar producto</span>
+        </div>
+        <div class="card-body">
+          <input
+            type="text"
+            id="busqueda-producto"
+            class="form-control"
+            placeholder="Nombre o código de barras (mín. 2 caracteres)..."
+            autocomplete="off"
+          >
+          <div id="resultados-productos" class="pos-resultados"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title"><i data-lucide="shopping-cart"></i> Carrito de compra</span>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>Producto</th>
+                  <th class="text-end">Precio</th>
+                  <th class="text-center">Cant.</th>
+                  <th class="text-end">Subtotal</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="carrito-body"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card-body" style="border-top: 1px solid var(--border-color);">
+          <div class="pos-total-row">
+            <span>Total a pagar</span>
+            <strong id="total-venta">S/. 0.00</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mt-4">
+      <div class="card-header">
+        <span class="card-title"><i data-lucide="credit-card"></i> Datos de la venta</span>
+      </div>
+      <div class="card-body">
+        <div class="detail-grid">
+          <div class="form-group">
+            <label class="form-label" for="tipoComprobante">Tipo de comprobante</label>
+            <select name="tipoComprobante" id="tipoComprobante" class="form-control" required>
+              <option value="TICKET">Ticket</option>
+              <option value="BOLETA">Boleta</option>
+              <option value="FACTURA">Factura</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="metodoPago">Método de pago</label>
+            <select name="metodoPago" id="metodoPago" class="form-control" required>
+              <option value="EFECTIVO">Efectivo</option>
+              <option value="TARJETA">Tarjeta</option>
+              <option value="YAPE">Yape</option>
+              <option value="PLIN">Plin</option>
+            </select>
+          </div>
+          <div class="form-group" id="cliente-group">
+            <label class="form-label" for="idCliente">Cliente <small class="text-muted">(obligatorio en factura)</small></label>
+            <select name="idCliente" id="idCliente" class="form-control">
+              <option value="">— Sin cliente / Cliente general —</option>
+              <% clientes.forEach(c => { %>
+                <option value="<%= c.id %>"><%= c.nombreCompleto %><% if (c.dni) { %> — <%= c.dni %><% } %></option>
+              <% }) %>
+            </select>
+          </div>
+        </div>
+        <div style="margin-top: 1.5rem; display: flex; gap: 0.75rem; flex-wrap: wrap;">
+          <button type="submit" class="btn btn-primary btn-lg">
+            <i data-lucide="check-circle"></i>
+            Completar venta
+          </button>
+          <a href="/ventas" class="btn btn-outline btn-lg">Cancelar</a>
+        </div>
+      </div>
+    </div>
+  </form>
+
+
+<script src="/js/punto-venta.js"></script>
+<%- include('../partials/footer') %>

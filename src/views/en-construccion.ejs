@@ -1,0 +1,46 @@
+<%- include('partials/head') %>
+  <%- include('partials/sidebar') %>
+
+  <div class="empty-page-center">
+    <div style="background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 50%; width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; margin-bottom: 2rem; animation: pulse 2s infinite;">
+      <i data-lucide="construction" style="width: 50px; height: 50px; color: var(--primary);"></i>
+    </div>
+    
+    <h2 style="font-size: 2.25rem; font-weight: 700; margin-bottom: 1rem; font-family: 'Outfit', sans-serif;">
+      Módulo en <span style="background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Construcción</span>
+    </h2>
+    
+    <p style="color: var(--text-muted); max-width: 500px; font-size: 1.1rem; line-height: 1.6; margin-bottom: 2.5rem;">
+      Estamos migrando este módulo desde la arquitectura Spring Boot anterior. Pronto estará disponible con la nueva interfaz de usuario premium.
+    </p>
+
+    <div style="display: flex; gap: 1rem;">
+      <a href="/dashboard" class="btn-primary" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none;">
+        <i data-lucide="arrow-left" style="width: 18px; height: 18px;"></i>
+        <span>Volver al Dashboard</span>
+      </a>
+      <a href="/banos/listar" class="btn-primary" style="background: var(--secondary); display: flex; align-items: center; gap: 0.5rem; text-decoration: none;">
+        <i data-lucide="scissors" style="width: 18px; height: 18px;"></i>
+        <span>Probar Estética</span>
+      </a>
+    </div>
+  </div>
+
+  <style>
+    @keyframes pulse {
+      0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4);
+      }
+      70% {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 20px rgba(99, 102, 241, 0);
+      }
+      100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(99, 102, 241, 0);
+      }
+    }
+  </style>
+
+  <%- include('partials/footer') %>

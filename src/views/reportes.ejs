@@ -1,0 +1,695 @@
+<%- include('partials/head', { title: typeof title !== 'undefined' ? title : 'Reportes | Mascolandia' }) %>
+  <%- include('partials/sidebar') %>
+
+  <!-- Cabecera de Reportes y Filtro de Fecha -->
+  <div class="card-premium" style="margin-bottom: 2rem; padding: 1.5rem; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem;">
+    <div>
+      <h2 style="font-size: 1.5rem; margin-bottom: 0.25rem;">Panel de Analíticas del Negocio</h2>
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0;">Monitorea ingresos, atenciones, clientes frecuentes y alertas de insumos.</p>
+    </div>
+    
+    <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+      <div class="form-group" style="margin-bottom: 0; min-width: 180px;">
+        <select id="periodo-select" class="form-control" style="padding-left: 1rem;" onchange="manejarPeriodo()">
+          <option value="hoy">Hoy</option>
+          <option value="semana">Esta Semana</option>
+          <option value="mes" selected>Este Mes</option>
+          <option value="trimestre">Último Trimestre</option>
+          <option value="anio">Este Año</option>
+          <option value="personalizado">Rango Personalizado</option>
+        </select>
+      </div>
+
+      <div id="rango-fechas" style="display: none; gap: 0.5rem; align-items: center;">
+        <input type="date" id="fecha-inicio" class="form-control" style="padding: 0.4rem 1rem; width: 140px;">
+        <span style="color: var(--text-muted);">a</span>
+        <input type="date" id="fecha-fin" class="form-control" style="padding: 0.4rem 1rem; width: 140px;">
+      </div>
+
+      <button onclick="cargarReportes()" class="btn-premium-sm primary" style="padding: 0.5rem 1rem; display: flex; align-items: center; gap: 0.5rem;">
+        <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i>
+        <span>Actualizar</span>
+      </button>
+      <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+        <button type="button" onclick="exportarReporte('completo')" class="btn-premium-sm" style="border:1px solid var(--border-color);">
+          <i data-lucide="download" style="width:14px;height:14px;"></i> Resumen CSV
+        </button>
+        <button type="button" onclick="exportarReporte('ventas')" class="btn-premium-sm" style="border:1px solid var(--border-color);">
+          <i data-lucide="file-spreadsheet" style="width:14px;height:14px;"></i> Ventas
+        </button>
+        <button type="button" onclick="exportarReporte('inventario')" class="btn-premium-sm" style="border:1px solid var(--border-color);">
+          <i data-lucide="package" style="width:14px;height:14px;"></i> Inventario
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pestañas de reportes -->
+  <div class="tabs-row">
+    <button type="button" class="btn-premium-sm primary tab-reporte active" data-tab="resumen" onclick="cambiarTab('resumen')">Resumen</button>
+    <button type="button" class="btn-premium-sm tab-reporte" data-tab="ventas" onclick="cambiarTab('ventas')">Ventas</button>
+    <button type="button" class="btn-premium-sm tab-reporte" data-tab="servicios" onclick="cambiarTab('servicios')">Servicios</button>
+    <button type="button" class="btn-premium-sm tab-reporte" data-tab="clientes" onclick="cambiarTab('clientes')">Clientes</button>
+    <button type="button" class="btn-premium-sm tab-reporte" data-tab="inventario" onclick="cambiarTab('inventario')">Inventario</button>
+  </div>
+
+  <div id="panel-resumen" class="panel-reporte">
+
+  <!-- Tarjetas KPI -->
+  <div class="grid-stats" style="margin-bottom: 2rem;">
+    <!-- Tarjeta 1: Ingresos -->
+    <div class="stat-card" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(168, 85, 247, 0.15) 100%); border-color: rgba(168, 85, 247, 0.3);">
+      <div class="stat-icon" style="background: rgba(168, 85, 247, 0.2); color: #a855f7;">
+        <i data-lucide="dollar-sign" style="width: 28px; height: 28px;"></i>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value" id="kpi-ingresos">S/. 0.00</div>
+        <div class="stat-label">Ingresos del Período</div>
+        <div style="font-size: 0.8rem; font-weight: 600; margin-top: 0.25rem;" id="kpi-ingresos-comparacion">0% vs anterior</div>
+      </div>
+    </div>
+
+    <!-- Tarjeta 2: Servicios -->
+    <div class="stat-card" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.15) 100%); border-color: rgba(16, 185, 129, 0.3);">
+      <div class="stat-icon" style="background: rgba(16, 185, 129, 0.2); color: #10b981;">
+        <i data-lucide="activity" style="width: 28px; height: 28px;"></i>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value" id="kpi-servicios">0</div>
+        <div class="stat-label">Servicios Realizados</div>
+        <div style="font-size: 0.8rem; font-weight: 600; margin-top: 0.25rem;" id="kpi-servicios-comparacion">0 vs anterior</div>
+      </div>
+    </div>
+
+    <!-- Tarjeta 3: Clientes -->
+    <div class="stat-card" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6) 100%); border-color: rgba(245, 158, 11, 0.3);">
+      <div class="stat-icon" style="background: rgba(245, 158, 11, 0.2); color: #f59e0b;">
+        <i data-lucide="users" style="width: 28px; height: 28px;"></i>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value" id="kpi-clientes">0</div>
+        <div class="stat-label">Clientes Atendidos</div>
+        <div style="font-size: 0.8rem; font-weight: 600; margin-top: 0.25rem;" id="kpi-clientes-comparacion">+0% nuevos</div>
+      </div>
+    </div>
+
+    <!-- Tarjeta 4: Ticket Promedio -->
+    <div class="stat-card" style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(8, 145, 178, 0.15) 100%); border-color: rgba(6, 182, 212, 0.3);">
+      <div class="stat-icon" style="background: rgba(6, 182, 212, 0.2); color: #06b6d4;">
+        <i data-lucide="trending-up" style="width: 28px; height: 28px;"></i>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value" id="kpi-ticket">S/. 0.00</div>
+        <div class="stat-label">Ticket Promedio</div>
+        <div style="font-size: 0.8rem; font-weight: 600; margin-top: 0.25rem;" id="kpi-ticket-comparacion">0% vs anterior</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sección de Gráficos -->
+  <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+    <!-- Gráfico de ingresos -->
+    <div class="card-premium">
+      <div class="card-premium-header">
+        <div class="card-premium-title">Historial de Ingresos Diarios</div>
+      </div>
+      <div style="position: relative; height: 300px; width: 100%;">
+        <canvas id="chart-ingresos"></canvas>
+      </div>
+    </div>
+
+    <!-- Gráfico de distribución -->
+    <div class="card-premium">
+      <div class="card-premium-header">
+        <div class="card-premium-title">Distribución por Servicio</div>
+      </div>
+      <div style="position: relative; height: 300px; width: 100%; display: flex; align-items: center; justify-content: center;">
+        <canvas id="chart-distribucion"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sección de Listas y Alertas -->
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+    <!-- Servicios Solicitados -->
+    <div class="card-premium">
+      <div class="card-premium-header">
+        <div class="card-premium-title">Servicios Más Demandados</div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 1rem;" id="lista-servicios-demandados">
+        <!-- Render dinámico -->
+      </div>
+    </div>
+
+    <!-- Alertas de Stock Bajo -->
+    <div class="card-premium">
+      <div class="card-premium-header">
+        <div class="card-premium-title" style="color: var(--danger);">Insumos en Alerta (Stock Crítico)</div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 1.25rem;" id="lista-alertas-inventario">
+        <!-- Render dinámico -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Sección de Transacciones y Clientes VIP -->
+  <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+    <!-- Tabla de Transacciones -->
+    <div class="card-premium">
+      <div class="card-premium-header">
+        <div class="card-premium-title">Transacciones Recientes del Período</div>
+      </div>
+      <div class="table-responsive">
+        <table class="table-premium">
+          <thead>
+            <tr>
+              <th>Cliente / Mascota</th>
+              <th>Tipo</th>
+              <th>Detalle</th>
+              <th>Fecha</th>
+              <th>Monto</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-cuerpo-transacciones">
+            <!-- Render dinámico -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Top Clientes -->
+    <div class="card-premium">
+      <div class="card-premium-header">
+        <div class="card-premium-title">Mejores Clientes (VIP)</div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 1rem;" id="lista-clientes-vip">
+        <!-- Render dinámico -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Pie de Analíticas / Estadísticas Generales -->
+  <div class="card-premium" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; text-align: center;">
+    <div>
+      <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary);" id="gen-clientes">0</div>
+      <div style="color: var(--text-muted); font-size: 0.85rem;">Clientes Activos en Base</div>
+    </div>
+    <div>
+      <div style="font-size: 1.5rem; font-weight: 700; color: var(--secondary);" id="gen-mascotas">0</div>
+      <div style="color: var(--text-muted); font-size: 0.85rem;">Mascotas Registradas</div>
+    </div>
+    <div>
+      <div style="font-size: 1.5rem; font-weight: 700; color: #10b981;" id="gen-retencion">0%</div>
+      <div style="color: var(--text-muted); font-size: 0.85rem;">Tasa de retención de clientes</div>
+    </div>
+    <div>
+      <div style="font-size: 1.5rem; font-weight: 700; color: var(--warning);" id="gen-citas-pendientes">0</div>
+      <div style="color: var(--text-muted); font-size: 0.85rem;">Citas Pendientes de Atención</div>
+    </div>
+  </div>
+  </div>
+
+  <div id="panel-ventas" class="panel-reporte" style="display:none;">
+    <div class="card-premium" style="margin-bottom:1.5rem;">
+      <div class="card-premium-header"><div class="card-premium-title">Reporte de ventas</div></div>
+      <div class="table-responsive">
+        <table class="table-premium">
+          <thead><tr><th>Producto</th><th>Cantidad</th><th>Monto S/.</th></tr></thead>
+          <tbody id="tabla-top-productos"></tbody>
+        </table>
+      </div>
+      <h4 style="margin:1.5rem 0 0.75rem; font-size:1rem;">Por método de pago</h4>
+      <div class="table-responsive">
+        <table class="table-premium">
+          <thead><tr><th>Método</th><th>Transacciones</th><th>Monto S/.</th></tr></thead>
+          <tbody id="tabla-metodo-pago"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="panel-servicios" class="panel-reporte" style="display:none;">
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem;">
+      <div class="card-premium">
+        <div class="card-premium-header"><div class="card-premium-title">Citas por estado</div></div>
+        <div style="height:260px;"><canvas id="chart-citas-estado"></canvas></div>
+      </div>
+      <div class="card-premium">
+        <div class="card-premium-header"><div class="card-premium-title">Top veterinarios</div></div>
+        <div id="lista-veterinarios" style="padding:1rem;"></div>
+      </div>
+    </div>
+    <div class="card-premium" style="margin-top:1.5rem;">
+      <div class="card-premium-header"><div class="card-premium-title">Ingresos por servicio</div></div>
+      <div class="table-responsive">
+        <table class="table-premium">
+          <thead><tr><th>Servicio</th><th>Atenciones</th><th>Ingresos S/.</th></tr></thead>
+          <tbody id="tabla-ingresos-servicio"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="panel-clientes" class="panel-reporte" style="display:none;">
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem;">
+      <div class="card-premium">
+        <div class="card-premium-header"><div class="card-premium-title">Top 20 por visitas</div></div>
+        <div class="table-responsive">
+          <table class="table-premium">
+            <thead><tr><th>Cliente</th><th>Visitas</th></tr></thead>
+            <tbody id="tabla-clientes-citas"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card-premium">
+        <div class="card-premium-header"><div class="card-premium-title">Top 20 por gasto</div></div>
+        <div class="table-responsive">
+          <table class="table-premium">
+            <thead><tr><th>Cliente</th><th>Gasto S/.</th></tr></thead>
+            <tbody id="tabla-clientes-gasto"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="panel-inventario" class="panel-reporte" style="display:none;">
+    <div class="grid-stats" style="margin-bottom:1.5rem;">
+      <div class="stat-card">
+        <div class="stat-info">
+          <div class="stat-value" id="inv-valor">S/. 0</div>
+          <div class="stat-label">Valor total inventario (costo)</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-info">
+          <div class="stat-value" id="inv-sin-stock">0</div>
+          <div class="stat-label">Sin stock</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-info">
+          <div class="stat-value" id="inv-bajo">0</div>
+          <div class="stat-label">Stock bajo</div>
+        </div>
+      </div>
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem;">
+      <div class="card-premium">
+        <div class="card-premium-header"><div class="card-premium-title">Por categoría</div></div>
+        <div id="lista-inv-categoria" style="padding:1rem;"></div>
+      </div>
+      <div class="card-premium">
+        <div class="card-premium-header"><div class="card-premium-title">Por proveedor</div></div>
+        <div id="lista-inv-proveedor" style="padding:1rem;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Logic JS for Analytics rendering -->
+  <script>
+    let chartIngresos = null;
+    let chartDistribucion = null;
+    let chartCitasEstado = null;
+    let datosReporte = null;
+
+    function chartPalette() {
+      return window.MascoTheme
+        ? MascoTheme.chartPalette()
+        : { text: '#94a3b8', grid: 'rgba(255,255,255,0.05)', border: '#1e293b' };
+    }
+
+    document.addEventListener('mascolandia-theme-change', () => {
+      if (datosReporte && datosReporte.graficos) {
+        actualizarGraficos(datosReporte.graficos);
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Inicializar con fechas de este mes por defecto
+      const hoy = new Date();
+      const primeroMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+      document.getElementById('fecha-inicio').value = primeroMes.toISOString().split('T')[0];
+      document.getElementById('fecha-fin').value = hoy.toISOString().split('T')[0];
+
+      cargarReportes();
+    });
+
+    function manejarPeriodo() {
+      const select = document.getElementById('periodo-select').value;
+      const rango = document.getElementById('rango-fechas');
+      
+      const hoy = new Date();
+      let ini = new Date();
+      let fin = new Date();
+
+      if (select === 'personalizado') {
+        rango.style.display = 'flex';
+        return;
+      } else {
+        rango.style.display = 'none';
+      }
+
+      if (select === 'hoy') {
+        ini = hoy;
+      } else if (select === 'semana') {
+        const diaSemana = hoy.getDay();
+        const diff = hoy.getDate() - diaSemana + (diaSemana === 0 ? -6 : 1); // lunes
+        ini = new Date(hoy.setDate(diff));
+      } else if (select === 'mes') {
+        ini = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+      } else if (select === 'trimestre') {
+        ini = new Date(hoy.setMonth(hoy.getMonth() - 3));
+      } else if (select === 'anio') {
+        ini = new Date(hoy.getFullYear(), 0, 1);
+      }
+
+      document.getElementById('fecha-inicio').value = ini.toISOString().split('T')[0];
+      document.getElementById('fecha-fin').value = fin.toISOString().split('T')[0];
+
+      cargarReportes();
+    }
+
+    async function cargarReportes() {
+      const ini = document.getElementById('fecha-inicio').value;
+      const fin = document.getElementById('fecha-fin').value;
+
+      try {
+        const res = await fetch(`/reportes/api/completo?fechaInicio=${ini}&fechaFin=${fin}`);
+        const json = await res.json();
+        
+        if (json.success) {
+          datosReporte = json;
+          actualizarKPIs(json.kpis);
+          actualizarGraficos(json.graficos);
+          actualizarListas(json);
+          actualizarPaneles(json);
+        } else {
+          Swal.fire({ icon: 'error', title: 'Error', text: json.message, background: '#1e293b', color: '#f8fafc' });
+        }
+      } catch (e) {
+        console.error(e);
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Error al consultar la API de analítica', background: '#1e293b', color: '#f8fafc' });
+      }
+    }
+
+    function actualizarKPIs(kpis) {
+      document.getElementById('kpi-ingresos').innerText = 'S/. ' + kpis.ingresosPeriodo.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      
+      const compIng = document.getElementById('kpi-ingresos-comparacion');
+      compIng.innerText = `${kpis.comparacionPeriodoAnterior} vs período anterior`;
+      compIng.style.color = kpis.comparacionPeriodoAnterior.startsWith('-') ? '#f87171' : '#4ade80';
+
+      document.getElementById('kpi-servicios').innerText = kpis.serviciosRealizados;
+      const compServ = document.getElementById('kpi-servicios-comparacion');
+      compServ.innerText = `${kpis.serviciosDiferencia >= 0 ? '+' : ''}${kpis.serviciosDiferencia} vs período anterior`;
+      compServ.style.color = kpis.serviciosDiferencia < 0 ? '#f87171' : '#4ade80';
+
+      document.getElementById('kpi-clientes').innerText = kpis.clientesAtendidos;
+      document.getElementById('kpi-clientes-comparacion').innerText = `${kpis.porcentajeNuevosClientes} clientes nuevos`;
+
+      document.getElementById('kpi-ticket').innerText = 'S/. ' + kpis.ticketPromedio.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      const compTick = document.getElementById('kpi-ticket-comparacion');
+      compTick.innerText = `${kpis.ticketPromedioComparacion} vs período anterior`;
+      compTick.style.color = kpis.ticketPromedioComparacion.startsWith('-') ? '#f87171' : '#4ade80';
+    }
+
+    function actualizarGraficos(data) {
+      const p = chartPalette();
+      // 1. Gráfico de Ingresos
+      const ctxIngresos = document.getElementById('chart-ingresos').getContext('2d');
+      const labelsIng = data.ingresosPorDia.map(d => d.label);
+      const valoresIng = data.ingresosPorDia.map(d => d.valor);
+
+      if (chartIngresos) {
+        chartIngresos.destroy();
+      }
+
+      // Gradiente para la línea del gráfico
+      const gradiente = ctxIngresos.createLinearGradient(0, 0, 0, 300);
+      gradiente.addColorStop(0, 'rgba(99, 102, 241, 0.4)');
+      gradiente.addColorStop(1, 'rgba(99, 102, 241, 0.0)');
+
+      chartIngresos = new Chart(ctxIngresos, {
+        type: 'line',
+        data: {
+          labels: labelsIng,
+          datasets: [{
+            label: 'Ingresos Diarios (S/.)',
+            data: valoresIng,
+            borderColor: '#6366f1',
+            borderWidth: 3,
+            backgroundColor: gradiente,
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: '#818cf8',
+            pointBorderColor: p.border,
+            pointHoverRadius: 7
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            x: {
+              grid: { color: p.grid },
+              ticks: { color: p.text }
+            },
+            y: {
+              grid: { color: p.grid },
+              ticks: { color: p.text }
+            }
+          }
+        }
+      });
+
+      // 2. Gráfico de Distribución (Dona)
+      const ctxDistribucion = document.getElementById('chart-distribucion').getContext('2d');
+      const dist = data.distribucionServicios;
+      const labelsDist = Object.keys(dist);
+      const valoresDist = Object.values(dist);
+
+      if (chartDistribucion) {
+        chartDistribucion.destroy();
+      }
+
+      chartDistribucion = new Chart(ctxDistribucion, {
+        type: 'doughnut',
+        data: {
+          labels: labelsDist,
+          datasets: [{
+            data: valoresDist,
+            backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#06b6d4'],
+            borderWidth: 2,
+            borderColor: p.border
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { color: p.text, font: { family: 'Outfit' } }
+            }
+          },
+          cutout: '70%'
+        }
+      });
+    }
+
+    function actualizarListas(json) {
+      // 1. Servicios Demandados
+      const divServ = document.getElementById('lista-servicios-demandados');
+      divServ.innerHTML = '';
+      if (json.serviciosMasSolicitados.length > 0) {
+        json.serviciosMasSolicitados.forEach(s => {
+          divServ.innerHTML += `
+            <div>
+              <div style="display:flex; justify-content:space-between; margin-bottom:0.25rem; font-size:0.9rem;">
+                <span style="font-weight:600;">${s.nombre}</span>
+                <span style="color:var(--text-muted);">${s.cantidad} solic. (${s.porcentaje}%)</span>
+              </div>
+              <div style="background-color:rgba(255,255,255,0.05); border-radius:50px; height:8px; overflow:hidden;">
+                <div style="background-color:var(--primary); height:100%; width:${s.porcentaje}%;"></div>
+              </div>
+            </div>
+          `;
+        });
+      } else {
+        divServ.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:1rem;">Sin atenciones en este período</div>`;
+      }
+
+      // 2. Alertas Inventario
+      const divAlertas = document.getElementById('lista-alertas-inventario');
+      divAlertas.innerHTML = '';
+      if (json.alertasInventario.length > 0) {
+        json.alertasInventario.forEach(a => {
+          let col = '#ef4444'; // rojo
+          if(a.porcentaje > 20) col = '#f59e0b'; // naranja
+
+          divAlertas.innerHTML += `
+            <div>
+              <div style="display:flex; justify-content:space-between; margin-bottom:0.25rem; font-size:0.9rem;">
+                <span style="font-weight:600;">${a.nombre}</span>
+                <span style="color:var(--text-muted);">${a.actual} / ${a.maximo} unidades (${a.porcentaje}%)</span>
+              </div>
+              <div style="background-color:rgba(255,255,255,0.05); border-radius:50px; height:8px; overflow:hidden;">
+                <div style="background-color:${col}; height:100%; width:${a.porcentaje}%;"></div>
+              </div>
+            </div>
+          `;
+        });
+      } else {
+        divAlertas.innerHTML = `<div style="text-align:center; color:#10b981; padding:1.5rem; font-weight:600;"><i data-lucide="check-circle" style="vertical-align:middle; margin-right:0.5rem;"></i>¡Todos los insumos tienen stock óptimo!</div>`;
+        lucide.createIcons();
+      }
+
+      // 3. Tabla Transacciones
+      const tbody = document.getElementById('tabla-cuerpo-transacciones');
+      tbody.innerHTML = '';
+      if (json.ultimasTransacciones.length > 0) {
+        json.ultimasTransacciones.forEach(t => {
+          let badgeClass = 'badge-primary';
+          if(t.tipo === 'Venta') badgeClass = 'badge-success';
+          if(t.tipo === 'Cita') badgeClass = 'badge-warning';
+
+          tbody.innerHTML += `
+            <tr>
+              <td><span style="font-weight:600;">${t.mascota}</span></td>
+              <td><span class="badge-premium ${badgeClass}">${t.tipo}</span></td>
+              <td>${t.detalle}</td>
+              <td>${t.fecha}</td>
+              <td style="font-weight:700;">S/. ${t.monto.toFixed(2)}</td>
+            </tr>
+          `;
+        });
+      } else {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted); padding:2rem;">No hay transacciones registradas</td></tr>`;
+      }
+
+      // 4. Clientes VIP
+      const divVIP = document.getElementById('lista-clientes-vip');
+      divVIP.innerHTML = '';
+      if (json.mejoresClientes.length > 0) {
+        json.mejoresClientes.forEach(c => {
+          const inicial = c.nombre.charAt(0).toUpperCase();
+          divVIP.innerHTML += `
+            <div style="display:flex; justify-content:space-between; align-items:center; background-color:rgba(255,255,255,0.02); padding:0.75rem; border-radius:var(--radius-md); border:1px solid var(--border-color);">
+              <div style="display:flex; align-items:center; gap:0.75rem;">
+                <div style="width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:1.1rem; color:#fff;">
+                  ${inicial}
+                </div>
+                <div>
+                  <div style="font-weight:600; font-size:0.95rem;">${c.nombre}</div>
+                  <div style="color:var(--text-muted); font-size:0.8rem;">${c.visitas} visitas en total</div>
+                </div>
+              </div>
+              <div style="font-weight:700; color:var(--primary); font-size:1.05rem;">
+                S/. ${c.total.toFixed(2)}
+              </div>
+            </div>
+          `;
+        });
+      } else {
+        divVIP.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:1rem;">Sin clientes registrados en el período</div>`;
+      }
+
+      // 5. Estadísticas Generales Footer
+      document.getElementById('gen-clientes').innerText = json.estadisticasGenerales.totalClientes;
+      document.getElementById('gen-mascotas').innerText = json.estadisticasGenerales.totalMascotas;
+      document.getElementById('gen-citas-pendientes').innerText = json.estadisticasGenerales.citasPendientes;
+      if (json.clientes) {
+        document.getElementById('gen-retencion').innerText = json.clientes.tasaRetencion + '%';
+      }
+    }
+
+    function cambiarTab(tab) {
+      document.querySelectorAll('.panel-reporte').forEach(p => p.style.display = 'none');
+      document.querySelectorAll('.tab-reporte').forEach(b => {
+        b.classList.remove('primary');
+        b.classList.remove('active');
+      });
+      document.getElementById('panel-' + tab).style.display = 'block';
+      const btn = document.querySelector(`.tab-reporte[data-tab="${tab}"]`);
+      if (btn) { btn.classList.add('primary'); btn.classList.add('active'); }
+      if (tab === 'servicios' && datosReporte) renderChartCitasEstado(datosReporte.graficos.citasPorEstado);
+    }
+
+    function exportarReporte(tipo) {
+      const ini = document.getElementById('fecha-inicio').value;
+      const fin = document.getElementById('fecha-fin').value;
+      window.location.href = `/reportes/api/exportar?tipo=${tipo}&fechaInicio=${ini}&fechaFin=${fin}`;
+    }
+
+    function actualizarPaneles(json) {
+      if (json.ventas) {
+        const tbProd = document.getElementById('tabla-top-productos');
+        tbProd.innerHTML = json.ventas.topProductos.length
+          ? json.ventas.topProductos.map(p => `<tr><td>${p.nombre}</td><td>${p.cantidad}</td><td>S/. ${p.monto.toFixed(2)}</td></tr>`).join('')
+          : '<tr><td colspan="3" style="text-align:center;color:var(--text-muted);">Sin ventas en el período</td></tr>';
+        const tbMp = document.getElementById('tabla-metodo-pago');
+        tbMp.innerHTML = json.ventas.porMetodoPago.length
+          ? json.ventas.porMetodoPago.map(m => `<tr><td>${m.metodo}</td><td>${m.cantidad}</td><td>S/. ${m.monto.toFixed(2)}</td></tr>`).join('')
+          : '<tr><td colspan="3" style="text-align:center;color:var(--text-muted);">Sin datos</td></tr>';
+      }
+      if (json.servicios) {
+        const tbIs = document.getElementById('tabla-ingresos-servicio');
+        tbIs.innerHTML = json.servicios.ingresosPorServicio.map(s =>
+          `<tr><td>${s.nombre}</td><td>${s.citas}</td><td>S/. ${s.ingresos.toFixed(2)}</td></tr>`
+        ).join('') || '<tr><td colspan="3" style="text-align:center;">Sin datos</td></tr>';
+        const divVet = document.getElementById('lista-veterinarios');
+        divVet.innerHTML = json.servicios.topVeterinarios.map(v =>
+          `<div style="display:flex;justify-content:space-between;padding:0.5rem 0;border-bottom:1px solid var(--border-color);"><span>${v.nombre}</span><strong>${v.citas} citas</strong></div>`
+        ).join('') || '<p style="color:var(--text-muted);">Sin citas atendidas</p>';
+      }
+      if (json.clientes) {
+        document.getElementById('tabla-clientes-citas').innerHTML = json.clientes.topPorCitas.map(c =>
+          `<tr><td>${c.nombre}</td><td>${c.citas}</td></tr>`
+        ).join('') || '<tr><td colspan="2" style="text-align:center;">Sin datos</td></tr>';
+        document.getElementById('tabla-clientes-gasto').innerHTML = json.clientes.topPorGasto.map(c =>
+          `<tr><td>${c.nombre}</td><td>S/. ${c.gasto.toFixed(2)}</td></tr>`
+        ).join('') || '<tr><td colspan="2" style="text-align:center;">Sin datos</td></tr>';
+      }
+      if (json.inventario) {
+        document.getElementById('inv-valor').innerText = 'S/. ' + json.inventario.valorInventario.toLocaleString('es-PE');
+        document.getElementById('inv-sin-stock').innerText = json.inventario.sinStock.length;
+        document.getElementById('inv-bajo').innerText = json.inventario.stockBajo.length;
+        document.getElementById('lista-inv-categoria').innerHTML = json.inventario.porCategoria.map(c =>
+          `<div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;"><span>${c.nombre}</span><span class="badge-premium badge-primary">${c.cantidad}</span></div>`
+        ).join('');
+        document.getElementById('lista-inv-proveedor').innerHTML = json.inventario.porProveedor.map(p =>
+          `<div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;"><span>${p.nombre}</span><span class="badge-premium badge-primary">${p.cantidad}</span></div>`
+        ).join('');
+      }
+    }
+
+    function renderChartCitasEstado(citasPorEstado) {
+      if (!citasPorEstado || !citasPorEstado.length) return;
+      const ctx = document.getElementById('chart-citas-estado');
+      if (!ctx) return;
+      if (chartCitasEstado) chartCitasEstado.destroy();
+      const p = chartPalette();
+      chartCitasEstado = new Chart(ctx.getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels: citasPorEstado.map(c => c.estado),
+          datasets: [{ label: 'Citas', data: citasPorEstado.map(c => c.cantidad), backgroundColor: '#6366f1' }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: p.text }, grid: { color: p.grid } },
+            y: { ticks: { color: p.text }, grid: { color: p.grid } }
+          }
+        }
+      });
+    }
+  </script>
+
+  <%- include('partials/footer') %>

@@ -1,0 +1,14 @@
+<div id="<%= modalId %>" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="<%= modalId %>-title">
+  <div class="modal-content <%= typeof modalSize !== 'undefined' ? modalSize : '' %>">
+    <div class="modal-header">
+      <h3 class="modal-title" id="<%= modalId %>-title">
+        <% if (typeof modalIcon !== 'undefined' && modalIcon) { %>
+          <i data-lucide="<%= modalIcon %>" style="width:20px;height:20px;vertical-align:middle;margin-right:0.35rem;"></i>
+        <% } %>
+        <%= modalTitle %>
+      </h3>
+      <button type="button" class="modal-close-btn" data-modal-close="<%= modalId %>" aria-label="Cerrar">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+    <div class="modal-body">

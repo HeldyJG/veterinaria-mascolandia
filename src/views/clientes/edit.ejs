@@ -1,0 +1,128 @@
+<%- include('../partials/head', { title: title }) %>
+<%- include('../partials/sidebar') %>
+
+
+  <!-- Breadcrumb -->
+  <div class="page-header">
+    <div class="page-header-left">
+      <nav class="breadcrumb">
+        <a href="/clientes" class="breadcrumb-link">Clientes</a>
+        <span class="breadcrumb-sep">/</span>
+        <a href="/clientes/<%= cliente.id %>" class="breadcrumb-link"><%= cliente.nombreCompleto %></a>
+        <span class="breadcrumb-sep">/</span>
+        <span>Editar</span>
+      </nav>
+    </div>
+    <div class="page-header-right">
+      <a href="/clientes/<%= cliente.id %>" class="btn btn-outline">
+        <i data-lucide="arrow-left"></i>
+        Volver
+      </a>
+    </div>
+  </div>
+
+  <!-- Formulario -->
+  <div class="card" style="max-width: 640px; margin: 0 auto;">
+    <div class="card-header">
+      <span class="card-title">
+        <i data-lucide="pencil"></i>
+        Editar Cliente
+      </span>
+    </div>
+    <div class="card-body">
+      <form method="POST" action="/clientes/<%= cliente.id %>?_method=PUT" novalidate>
+
+        <!-- Nombre Completo -->
+        <div class="form-group">
+          <label for="nombreCompleto" class="form-label">
+            Nombre Completo <span class="text-danger">*</span>
+          </label>
+          <input
+            type="text"
+            id="nombreCompleto"
+            name="nombreCompleto"
+            class="form-control"
+            value="<%= cliente.nombreCompleto %>"
+            maxlength="150"
+            required
+          />
+          <small class="form-hint">Nombre y apellidos del cliente. Mínimo 3 caracteres.</small>
+        </div>
+
+        <!-- DNI -->
+        <div class="form-group">
+          <label for="dni" class="form-label">DNI</label>
+          <input
+            type="text"
+            id="dni"
+            name="dni"
+            class="form-control"
+            value="<%= cliente.dni || '' %>"
+            maxlength="20"
+          />
+          <small class="form-hint">Opcional. Debe ser único si se ingresa.</small>
+        </div>
+
+        <!-- Dirección -->
+        <div class="form-group">
+          <label for="direccion" class="form-label">
+            Dirección <span class="text-danger">*</span>
+          </label>
+          <input
+            type="text"
+            id="direccion"
+            name="direccion"
+            class="form-control"
+            value="<%= cliente.direccion %>"
+            maxlength="200"
+            required
+          />
+          <small class="form-hint">Dirección de residencia del cliente.</small>
+        </div>
+
+        <!-- Teléfono -->
+        <div class="form-group">
+          <label for="telefono" class="form-label">
+            Teléfono <span class="text-danger">*</span>
+          </label>
+          <input
+            type="text"
+            id="telefono"
+            name="telefono"
+            class="form-control"
+            value="<%= cliente.telefono %>"
+            maxlength="20"
+            required
+          />
+          <small class="form-hint">Número de contacto principal.</small>
+        </div>
+
+        <!-- Correo -->
+        <div class="form-group">
+          <label for="correo" class="form-label">Correo Electrónico</label>
+          <input
+            type="email"
+            id="correo"
+            name="correo"
+            class="form-control"
+            value="<%= cliente.correo || '' %>"
+            maxlength="150"
+          />
+          <small class="form-hint">Opcional. Debe ser un correo válido si se ingresa.</small>
+        </div>
+
+        <!-- Botones -->
+        <div class="form-actions">
+          <a href="/clientes/<%= cliente.id %>" class="btn btn-outline">Cancelar</a>
+          <button type="submit" class="btn btn-primary">
+            <i data-lucide="save"></i>
+            Guardar Cambios
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+
+<%- include('../partials/footer') %>

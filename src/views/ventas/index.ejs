@@ -1,0 +1,151 @@
+<%- include('../partials/head', { title: title }) %>
+<%- include('../partials/sidebar') %>
+
+
+  <div class="page-header">
+    <div class="page-header-left">
+      <h2 class="page-subtitle">Historial de ventas registradas</h2>
+    </div>
+    <div class="page-header-right">
+      <button type="button" class="btn btn-primary" onclick="MascoModal.open('modal-crear-venta')">
+        <i data-lucide="shopping-cart"></i>
+        Nueva Venta
+      </button>
+    </div>
+  </div>
+
+  <div class="card mb-4">
+    <div class="card-body">
+      <form method="GET" action="/ventas" class="search-form">
+        <div class="input-group" style="flex-wrap: wrap; gap: 0.5rem;">
+          <input
+            type="text"
+            name="busqueda"
+            class="form-control"
+            placeholder="Buscar por comprobante o cliente..."
+            value="<%= busqueda %>"
+            style="min-width: 200px; flex: 1;"
+          />
+          <select name="estado" class="form-control" style="max-width: 160px;">
+            <option value="">Todos los estados</option>
+            <option value="COMPLETADA" <%= estado === 'COMPLETADA' ? 'selected' : '' %>>Completada</option>
+            <option value="ANULADA" <%= estado === 'ANULADA' ? 'selected' : '' %>>Anulada</option>
+          </select>
+          <select name="metodoPago" class="form-control" style="max-width: 160px;">
+            <option value="">Todos los pagos</option>
+            <option value="EFECTIVO" <%= metodoPago === 'EFECTIVO' ? 'selected' : '' %>>Efectivo</option>
+            <option value="TARJETA" <%= metodoPago === 'TARJETA' ? 'selected' : '' %>>Tarjeta</option>
+            <option value="YAPE" <%= metodoPago === 'YAPE' ? 'selected' : '' %>>Yape</option>
+            <option value="PLIN" <%= metodoPago === 'PLIN' ? 'selected' : '' %>>Plin</option>
+          </select>
+          <input type="date" name="fechaDesde" class="form-control" value="<%= fechaDesde %>" style="max-width: 160px;">
+          <input type="date" name="fechaHasta" class="form-control" value="<%= fechaHasta %>" style="max-width: 160px;">
+          <button type="submit" class="btn btn-secondary">
+            <i data-lucide="search"></i>
+            Filtrar
+          </button>
+          <% if (busqueda || estado || metodoPago || fechaDesde || fechaHasta) { %>
+            <a href="/ventas" class="btn btn-outline">
+              <i data-lucide="x"></i>
+              Limpiar
+            </a>
+          <% } %>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">
+        Ventas
+        <span class="badge badge-info"><%= totalRegistros %> registros</span>
+      </span>
+    </div>
+    <div class="card-body p-0">
+      <% if (ventas.length === 0) { %>
+        <div class="empty-state">
+          <i data-lucide="receipt"></i>
+          <p>No se encontraron ventas.</p>
+          <button type="button" class="btn btn-primary" onclick="MascoModal.open('modal-crear-venta')">Registrar primera venta</button>
+        </div>
+      <% } else { %>
+        <div class="table-responsive">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Comprobante</th>
+                <th>Fecha</th>
+                <th>Cliente</th>
+                <th>Pago</th>
+                <th class="text-end">Total</th>
+                <th>Estado</th>
+                <th class="text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% ventas.forEach(v => { %>
+                <tr>
+                  <td>
+                    <span class="fw-semibold"><%= v.numeroComprobante || ('#' + v.id) %></span>
+                    <small class="text-muted d-block"><%= v.tipoComprobante %></small>
+                  </td>
+                  <td style="white-space: nowrap;">
+                    <%= v.fechaVenta ? new Date(v.fechaVenta).toLocaleString('es-PE') : '—' %>
+                  </td>
+                  <td><%= v.cliente ? v.cliente.nombreCompleto : 'Cliente general' %></td>
+                  <td><%= v.metodoPago %></td>
+                  <td class="text-end fw-semibold">S/. <%= parseFloat(v.total).toFixed(2) %></td>
+                  <td>
+                    <% if (v.estado === 'ANULADA') { %>
+                      <span class="badge badge-danger">Anulada</span>
+                    <% } else { %>
+                      <span class="badge badge-success">Completada</span>
+                    <% } %>
+                  </td>
+                  <td class="text-center" style="white-space: nowrap;">
+                    <button type="button" class="btn btn-sm btn-info" title="Ver detalle" onclick="MascoGestion.ver('venta', <%= v.id %>)">
+                      <i data-lucide="eye"></i>
+                    </button>
+                    <a href="/ventas/<%= v.id %>/imprimir" class="btn btn-sm btn-secondary" title="Imprimir" target="_blank">
+                      <i data-lucide="printer"></i>
+                    </a>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+
+        <% if (totalPaginas > 1) { %>
+          <div class="pagination-wrapper">
+            <div class="pagination-info">
+              Página <%= pagina %> de <%= totalPaginas %> — <%= totalRegistros %> registros
+            </div>
+            <div class="pagination">
+              <% if (pagina > 1) { %>
+                <a href="/ventas?pagina=<%= pagina - 1 %>&busqueda=<%= busqueda %>&estado=<%= estado %>&metodoPago=<%= metodoPago %>&fechaDesde=<%= fechaDesde %>&fechaHasta=<%= fechaHasta %>" class="page-link">
+                  <i data-lucide="chevron-left"></i>
+                </a>
+              <% } %>
+              <% for (let i = Math.max(1, pagina - 2); i <= Math.min(totalPaginas, pagina + 2); i++) { %>
+                <a href="/ventas?pagina=<%= i %>&busqueda=<%= busqueda %>&estado=<%= estado %>&metodoPago=<%= metodoPago %>&fechaDesde=<%= fechaDesde %>&fechaHasta=<%= fechaHasta %>"
+                   class="page-link <%= i === pagina ? 'active' : '' %>"><%= i %></a>
+              <% } %>
+              <% if (pagina < totalPaginas) { %>
+                <a href="/ventas?pagina=<%= pagina + 1 %>&busqueda=<%= busqueda %>&estado=<%= estado %>&metodoPago=<%= metodoPago %>&fechaDesde=<%= fechaDesde %>&fechaHasta=<%= fechaHasta %>" class="page-link">
+                  <i data-lucide="chevron-right"></i>
+                </a>
+              <% } %>
+            </div>
+          </div>
+        <% } %>
+      <% } %>
+    </div>
+  </div>
+
+
+<%- include('../partials/modals/venta-crear') %>
+<script src="/js/punto-venta.js"></script>
+
+<%- include('../partials/footer') %>

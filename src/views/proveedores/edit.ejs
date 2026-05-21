@@ -1,0 +1,125 @@
+<%- include('../partials/head', { title: title }) %>
+<%- include('../partials/sidebar') %>
+
+
+  <!-- Breadcrumb -->
+  <div class="page-header">
+    <div class="page-header-left">
+      <nav class="breadcrumb">
+        <a href="/proveedores" class="breadcrumb-link">Proveedores</a>
+        <span class="breadcrumb-sep">/</span>
+        <a href="/proveedores/<%= proveedor.id %>" class="breadcrumb-link"><%= proveedor.nombreEmpresa %></a>
+        <span class="breadcrumb-sep">/</span>
+        <span>Editar</span>
+      </nav>
+    </div>
+    <div class="page-header-right">
+      <a href="/proveedores/<%= proveedor.id %>" class="btn btn-outline">
+        <i data-lucide="arrow-left"></i>
+        Volver
+      </a>
+    </div>
+  </div>
+
+  <!-- Formulario -->
+  <div class="card" style="max-width: 700px; margin: 0 auto;">
+    <div class="card-header">
+      <span class="card-title">
+        <i data-lucide="pencil"></i>
+        Editar Proveedor
+      </span>
+    </div>
+    <div class="card-body">
+      <form method="POST" action="/proveedores/<%= proveedor.id %>?_method=PUT" novalidate>
+
+        <!-- Nombre de empresa -->
+        <div class="form-group">
+          <label for="nombreEmpresa" class="form-label">
+            Nombre de Empresa <span class="text-danger">*</span>
+          </label>
+          <input
+            type="text"
+            id="nombreEmpresa"
+            name="nombreEmpresa"
+            class="form-control"
+            value="<%= proveedor.nombreEmpresa %>"
+            maxlength="150"
+            required
+          />
+          <small class="form-hint">Mínimo 3 caracteres, máximo 150.</small>
+        </div>
+
+        <!-- RUC -->
+        <div class="form-group">
+          <label for="ruc" class="form-label">RUC</label>
+          <input
+            type="text"
+            id="ruc"
+            name="ruc"
+            class="form-control"
+            value="<%= proveedor.ruc || '' %>"
+            maxlength="11"
+            pattern="\d{11}"
+          />
+          <small class="form-hint">Opcional. Exactamente 11 dígitos numéricos. Debe ser único.</small>
+        </div>
+
+        <!-- Teléfono -->
+        <div class="form-group">
+          <label for="telefono" class="form-label">
+            Teléfono <span class="text-danger">*</span>
+          </label>
+          <input
+            type="text"
+            id="telefono"
+            name="telefono"
+            class="form-control"
+            value="<%= proveedor.telefono %>"
+            maxlength="20"
+            required
+          />
+          <small class="form-hint">Solo dígitos numéricos, entre 7 y 20 caracteres.</small>
+        </div>
+
+        <!-- Correo -->
+        <div class="form-group">
+          <label for="correo" class="form-label">Correo Electrónico</label>
+          <input
+            type="email"
+            id="correo"
+            name="correo"
+            class="form-control"
+            value="<%= proveedor.correo || '' %>"
+            maxlength="100"
+          />
+          <small class="form-hint">Opcional. Debe tener formato de correo válido.</small>
+        </div>
+
+        <!-- Dirección -->
+        <div class="form-group">
+          <label for="direccion" class="form-label">Dirección</label>
+          <textarea
+            id="direccion"
+            name="direccion"
+            class="form-control"
+            rows="2"
+            maxlength="255"
+          ><%= proveedor.direccion || '' %></textarea>
+          <small class="form-hint">Opcional. Máximo 255 caracteres.</small>
+        </div>
+
+        <!-- Botones -->
+        <div class="form-actions">
+          <a href="/proveedores/<%= proveedor.id %>" class="btn btn-outline">Cancelar</a>
+          <button type="submit" class="btn btn-primary">
+            <i data-lucide="save"></i>
+            Guardar Cambios
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+
+<%- include('../partials/footer') %>

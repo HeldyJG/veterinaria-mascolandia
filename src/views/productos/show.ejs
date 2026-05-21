@@ -1,0 +1,278 @@
+<%- include('../partials/head', { title: title }) %>
+<%- include('../partials/sidebar') %>
+
+
+  <!-- Breadcrumb -->
+  <div class="page-header">
+    <div class="page-header-left">
+      <nav class="breadcrumb">
+        <a href="/productos" class="breadcrumb-link">Productos</a>
+        <span class="breadcrumb-sep">/</span>
+        <span><%= producto.nombre %></span>
+      </nav>
+    </div>
+    <div class="page-header-right">
+      <button type="button" class="btn btn-success" onclick="abrirModalStock()">
+        <i data-lucide="package"></i>
+        Ajustar Stock
+      </button>
+      <a href="/productos/<%= producto.id %>/editar" class="btn btn-warning">
+        <i data-lucide="pencil"></i>
+        Editar
+      </a>
+      <a href="/productos" class="btn btn-outline">
+        <i data-lucide="arrow-left"></i>
+        Volver
+      </a>
+    </div>
+  </div>
+
+  <%
+    let stockBadge = 'badge-success';
+    let stockLabel = 'Stock OK';
+    if (producto.estadoStock === 'SIN_STOCK') {
+      stockBadge = 'badge-danger';
+      stockLabel = 'Sin Stock';
+    } else if (producto.estadoStock === 'STOCK_BAJO') {
+      stockBadge = 'badge-warning';
+      stockLabel = 'Stock Bajo';
+    }
+  %>
+
+  <!-- Alerta de stock bajo o sin stock -->
+  <% if (producto.estadoStock === 'SIN_STOCK') { %>
+    <div class="alert alert-danger mb-4" style="display:flex; align-items:center; gap:0.5rem; padding:0.875rem 1rem; border-radius:0.5rem; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.4); color:#fca5a5;">
+      <i data-lucide="alert-circle"></i>
+      <strong>Sin Stock:</strong> Este producto no tiene unidades disponibles. Registra una entrada de inventario.
+    </div>
+  <% } else if (producto.estadoStock === 'STOCK_BAJO') { %>
+    <div class="alert alert-warning mb-4" style="display:flex; align-items:center; gap:0.5rem; padding:0.875rem 1rem; border-radius:0.5rem; background:rgba(234,179,8,0.15); border:1px solid rgba(234,179,8,0.4); color:#fde047;">
+      <i data-lucide="alert-triangle"></i>
+      <strong>Stock Bajo:</strong> El stock actual (<%= producto.stockActual %>) está por debajo del mínimo (<%= producto.stockMinimo %>).
+    </div>
+  <% } %>
+
+  <!-- Detalle del producto -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <span class="card-title">
+        <i data-lucide="package"></i>
+        Información del Producto
+      </span>
+      <span class="badge <%= stockBadge %>"><%= stockLabel %></span>
+    </div>
+    <div class="card-body">
+      <div class="detail-grid">
+
+        <div class="detail-item">
+          <span class="detail-label">Nombre</span>
+          <span class="detail-value fw-semibold"><%= producto.nombre %></span>
+        </div>
+
+        <div class="detail-item">
+          <span class="detail-label">Código de Barras</span>
+          <span class="detail-value">
+            <% if (producto.codigoBarras) { %>
+              <code><%= producto.codigoBarras %></code>
+            <% } else { %>
+              —
+            <% } %>
+          </span>
+        </div>
+
+        <div class="detail-item">
+          <span class="detail-label">Categoría</span>
+          <span class="detail-value"><%= producto.categoria ? producto.categoria.nombre : '—' %></span>
+        </div>
+
+        <div class="detail-item">
+          <span class="detail-label">Proveedor</span>
+          <span class="detail-value"><%= producto.proveedor ? producto.proveedor.nombreEmpresa : '—' %></span>
+        </div>
+
+        <div class="detail-item">
+          <span class="detail-label">Precio Compra</span>
+          <span class="detail-value">S/. <%= parseFloat(producto.precioCompra).toFixed(2) %></span>
+        </div>
+
+        <div class="detail-item">
+          <span class="detail-label">Precio Venta</span>
+          <span class="detail-value fw-semibold" style="color: var(--success);">
+            S/. <%= parseFloat(producto.precioVenta).toFixed(2) %>
+          </span>
+        </div>
+
+        <div class="detail-item">
+          <span class="detail-label">Stock Actual</span>
+          <span class="detail-value">
+            <span class="badge <%= stockBadge %>" style="font-size: 1rem; padding: 0.35rem 0.75rem;">
+              <%= producto.stockActual %> unidades
+            </span>
+          </span>
+        </div>
+
+        <div class="detail-item">
+          <span class="detail-label">Stock Mínimo</span>
+          <span class="detail-value"><%= producto.stockMinimo %> unidades</span>
+        </div>
+
+        <% if (producto.descripcion) { %>
+          <div class="detail-item" style="grid-column: 1 / -1;">
+            <span class="detail-label">Descripción</span>
+            <span class="detail-value"><%= producto.descripcion %></span>
+          </div>
+        <% } %>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ===================== MODAL AJUSTE DE STOCK ===================== -->
+<div id="modalStock" style="display:none; position:fixed; inset:0; z-index:1000; background:rgba(0,0,0,0.6); align-items:center; justify-content:center;">
+  <div style="background:#1e293b; border:1px solid #334155; border-radius:0.75rem; padding:1.5rem; width:100%; max-width:480px; margin:1rem;">
+
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1.25rem;">
+      <h3 style="margin:0; font-size:1.1rem; display:flex; align-items:center; gap:0.5rem;">
+        <i data-lucide="package"></i>
+        Ajuste Manual de Stock
+      </h3>
+      <button type="button" onclick="cerrarModalStock()" style="background:none; border:none; cursor:pointer; color:#94a3b8; font-size:1.25rem; line-height:1;">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+
+    <div style="margin-bottom:1rem; padding:0.75rem; background:#0f172a; border-radius:0.5rem; font-size:0.875rem; color:#94a3b8;">
+      Producto: <strong style="color:#f8fafc;"><%= producto.nombre %></strong><br>
+      Stock actual: <span class="badge <%= stockBadge %>"><%= producto.stockActual %> unidades</span>
+    </div>
+
+    <form method="POST" action="/productos/<%= producto.id %>/stock?_method=PUT" novalidate>
+
+      <!-- Tipo de ajuste -->
+      <div class="form-group">
+        <label class="form-label">
+          Tipo de Ajuste <span class="text-danger">*</span>
+        </label>
+        <div style="display:flex; gap:1rem;">
+          <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; padding:0.5rem 1rem; border:1px solid #334155; border-radius:0.5rem; flex:1; justify-content:center;" id="labelEntrada">
+            <input type="radio" name="tipo" value="ENTRADA" required onchange="actualizarTipo(this.value)" style="display:none;">
+            <i data-lucide="arrow-down-circle" style="color:#22c55e;"></i>
+            <span>ENTRADA</span>
+          </label>
+          <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; padding:0.5rem 1rem; border:1px solid #334155; border-radius:0.5rem; flex:1; justify-content:center;" id="labelSalida">
+            <input type="radio" name="tipo" value="SALIDA" onchange="actualizarTipo(this.value)" style="display:none;">
+            <i data-lucide="arrow-up-circle" style="color:#ef4444;"></i>
+            <span>SALIDA</span>
+          </label>
+        </div>
+        <small class="form-hint">ENTRADA suma al stock. SALIDA resta del stock.</small>
+      </div>
+
+      <!-- Cantidad -->
+      <div class="form-group">
+        <label for="cantidad" class="form-label">
+          Cantidad <span class="text-danger">*</span>
+        </label>
+        <input
+          type="number"
+          id="cantidad"
+          name="cantidad"
+          class="form-control"
+          placeholder="Ej: 10"
+          min="1"
+          step="1"
+          required
+        />
+        <small class="form-hint">Número entero mayor a 0.</small>
+      </div>
+
+      <!-- Motivo -->
+      <div class="form-group">
+        <label for="motivo" class="form-label">Motivo</label>
+        <input
+          type="text"
+          id="motivo"
+          name="motivo"
+          class="form-control"
+          placeholder="Ej: Compra a proveedor, Merma, Corrección de inventario..."
+          maxlength="200"
+        />
+        <small class="form-hint">Opcional. Razón del ajuste.</small>
+      </div>
+
+      <!-- Botones -->
+      <div class="form-actions">
+        <button type="button" onclick="cerrarModalStock()" class="btn btn-outline">Cancelar</button>
+        <button type="submit" class="btn btn-primary" id="btnAjustar">
+          <i data-lucide="save"></i>
+          Aplicar Ajuste
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+<script>
+  function abrirModalStock() {
+    const modal = document.getElementById('modalStock');
+    modal.style.display = 'flex';
+    // Reiniciar selección de tipo
+    document.querySelectorAll('input[name="tipo"]').forEach(r => r.checked = false);
+    actualizarTipo(null);
+    document.getElementById('cantidad').value = '';
+    document.getElementById('motivo').value = '';
+    lucide.createIcons();
+  }
+
+  function cerrarModalStock() {
+    document.getElementById('modalStock').style.display = 'none';
+  }
+
+  function actualizarTipo(valor) {
+    const labelEntrada = document.getElementById('labelEntrada');
+    const labelSalida = document.getElementById('labelSalida');
+    const btn = document.getElementById('btnAjustar');
+
+    labelEntrada.style.borderColor = '#334155';
+    labelEntrada.style.background = 'transparent';
+    labelSalida.style.borderColor = '#334155';
+    labelSalida.style.background = 'transparent';
+
+    if (valor === 'ENTRADA') {
+      labelEntrada.style.borderColor = '#22c55e';
+      labelEntrada.style.background = 'rgba(34,197,94,0.1)';
+      btn.textContent = '';
+      btn.innerHTML = '<i data-lucide="save"></i> Registrar Entrada';
+    } else if (valor === 'SALIDA') {
+      labelSalida.style.borderColor = '#ef4444';
+      labelSalida.style.background = 'rgba(239,68,68,0.1)';
+      btn.textContent = '';
+      btn.innerHTML = '<i data-lucide="save"></i> Registrar Salida';
+    }
+    lucide.createIcons();
+  }
+
+  // Cerrar modal al hacer clic fuera
+  document.getElementById('modalStock').addEventListener('click', function(e) {
+    if (e.target === this) {
+      cerrarModalStock();
+    }
+  });
+
+  // Seleccionar tipo al hacer clic en el label
+  document.getElementById('labelEntrada').addEventListener('click', function() {
+    const radio = this.querySelector('input[type="radio"]');
+    radio.checked = true;
+    actualizarTipo('ENTRADA');
+  });
+
+  document.getElementById('labelSalida').addEventListener('click', function() {
+    const radio = this.querySelector('input[type="radio"]');
+    radio.checked = true;
+    actualizarTipo('SALIDA');
+  });
+</script>
+
+<%- include('../partials/footer') %>

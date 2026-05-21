@@ -1,0 +1,72 @@
+<form method="POST" action="/mascotas/<%= mascota.id %>?_method=PUT" enctype="multipart/form-data" novalidate>
+  <input type="hidden" name="returnTo" value="list">
+  <div class="form-group">
+    <label for="modal-edit-mascota-nombre" class="form-label">Nombre <span class="text-danger">*</span></label>
+    <input type="text" id="modal-edit-mascota-nombre" name="nombre" class="form-control" value="<%= mascota.nombre %>" maxlength="100" required>
+  </div>
+  <div class="form-group">
+    <label for="modal-edit-mascota-cliente" class="form-label">Cliente <span class="text-danger">*</span></label>
+    <select id="modal-edit-mascota-cliente" name="idCliente" class="form-control" required>
+      <option value="">— Seleccionar —</option>
+      <% (clientes || []).forEach(c => { %>
+        <option value="<%= c.id %>" <%= mascota.idCliente == c.id ? 'selected' : '' %>><%= c.nombreCompleto %></option>
+      <% }) %>
+    </select>
+  </div>
+  <div class="form-group">
+    <label for="modal-edit-mascota-especie" class="form-label">Especie</label>
+    <select id="modal-edit-mascota-especie" name="idEspecie" class="form-control">
+      <option value="">— Todas —</option>
+      <% (especies || []).forEach(e => { %>
+        <option value="<%= e.id %>" <%= (mascota.raza && mascota.raza.especie && mascota.raza.especie.id == e.id) ? 'selected' : '' %>><%= e.nombre %></option>
+      <% }) %>
+    </select>
+  </div>
+  <div class="form-group">
+    <label for="modal-edit-mascota-raza" class="form-label">Raza <span class="text-danger">*</span></label>
+    <select id="modal-edit-mascota-raza" name="idRaza" class="form-control" required>
+      <option value="">— Seleccionar raza —</option>
+      <% (razas || []).forEach(r => { %>
+        <option value="<%= r.id %>" <%= mascota.idRaza == r.id ? 'selected' : '' %>><%= r.nombre %></option>
+      <% }) %>
+    </select>
+  </div>
+  <div class="form-row-2">
+    <div class="form-group">
+      <label for="modal-edit-mascota-sexo" class="form-label">Sexo</label>
+      <select id="modal-edit-mascota-sexo" name="sexo" class="form-control">
+        <option value="" <%= !mascota.sexo ? 'selected' : '' %>>— No especificado —</option>
+        <option value="MACHO" <%= mascota.sexo === 'MACHO' ? 'selected' : '' %>>Macho</option>
+        <option value="HEMBRA" <%= mascota.sexo === 'HEMBRA' ? 'selected' : '' %>>Hembra</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="modal-edit-mascota-fecha" class="form-label">Fecha nacimiento</label>
+      <input type="date" id="modal-edit-mascota-fecha" name="fechaNacimiento" class="form-control" value="<%= mascota.fechaNacimiento || '' %>" max="<%= new Date().toISOString().split('T')[0] %>">
+    </div>
+  </div>
+  <div class="form-row-2">
+    <div class="form-group">
+      <label for="modal-edit-mascota-peso" class="form-label">Peso (kg)</label>
+      <input type="number" id="modal-edit-mascota-peso" name="pesoActual" class="form-control" step="0.01" min="0" value="<%= mascota.pesoActual || '' %>">
+    </div>
+    <div class="form-group">
+      <label for="modal-edit-mascota-color" class="form-label">Color</label>
+      <input type="text" id="modal-edit-mascota-color" name="color" class="form-control" maxlength="100" value="<%= mascota.color || '' %>">
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="modal-edit-mascota-foto" class="form-label">Nueva foto (opcional)</label>
+    <% if (mascota.foto) { %>
+      <p class="form-hint">Foto actual: <%= mascota.foto %></p>
+    <% } %>
+    <input type="file" id="modal-edit-mascota-foto" name="foto" class="form-control" accept="image/*">
+    <div id="modal-edit-mascota-foto-preview" style="display:none;margin-top:0.5rem;">
+      <img id="modal-edit-mascota-foto-img" src="" alt="Preview" style="max-width:100px;max-height:100px;border-radius:8px;">
+    </div>
+  </div>
+  <div class="form-actions">
+    <button type="button" class="btn btn-outline" data-modal-close="modal-gestion">Cancelar</button>
+    <button type="submit" class="btn btn-primary"><i data-lucide="save"></i> Guardar cambios</button>
+  </div>
+</form>

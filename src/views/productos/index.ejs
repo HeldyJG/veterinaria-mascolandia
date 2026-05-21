@@ -1,0 +1,219 @@
+<%- include('../partials/head', { title: title }) %>
+<%- include('../partials/sidebar') %>
+
+
+  <!-- Header de página -->
+  <div class="page-header">
+    <div class="page-header-left">
+      <h2 class="page-subtitle">Lista de productos registrados</h2>
+    </div>
+    <div class="page-header-right">
+      <button type="button" class="btn btn-primary" onclick="MascoModal.open('modal-crear-producto')">
+        <i data-lucide="package-plus"></i>
+        Nuevo Producto
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <form method="GET" action="/productos" class="search-form">
+        <div class="input-group" style="flex-wrap: wrap; gap: 0.5rem;">
+          <input
+            type="text"
+            name="busqueda"
+            class="form-control"
+            placeholder="Buscar por nombre o código de barras..."
+            value="<%= busqueda %>"
+            style="min-width: 200px; flex: 1;"
+          />
+          <select name="idCategoria" class="form-control" style="max-width: 200px;">
+            <option value="">Todas las categorías</option>
+            <% categorias.forEach(cat => { %>
+              <option value="<%= cat.id %>" <%= idCategoria == cat.id ? 'selected' : '' %>>
+                <%= cat.nombre %>
+              </option>
+            <% }) %>
+          </select>
+          <select name="idProveedor" class="form-control" style="max-width: 200px;">
+            <option value="">Todos los proveedores</option>
+            <% proveedores.forEach(prov => { %>
+              <option value="<%= prov.id %>" <%= idProveedor == prov.id ? 'selected' : '' %>>
+                <%= prov.nombreEmpresa %>
+              </option>
+            <% }) %>
+          </select>
+          <button type="submit" class="btn btn-secondary">
+            <i data-lucide="search"></i>
+            Buscar
+          </button>
+          <% if (busqueda || idCategoria || idProveedor) { %>
+            <a href="/productos" class="btn btn-outline">
+              <i data-lucide="x"></i>
+              Limpiar
+            </a>
+          <% } %>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Tabla de productos -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">
+        Productos
+        <span class="badge badge-info"><%= totalRegistros %> registros</span>
+      </span>
+      <% if (productos.length > 0) { %>
+        <%
+          const totalInventario = productos.reduce((sum, p) => {
+            return sum + (parseFloat(p.precioVenta) * parseInt(p.stockActual));
+          }, 0);
+        %>
+        <span class="card-title" style="font-size: 0.875rem; color: var(--text-muted);">
+          Valor total inventario (página):
+          <strong style="color: var(--success);">
+            S/. <%= totalInventario.toFixed(2) %>
+          </strong>
+        </span>
+      <% } %>
+    </div>
+    <div class="card-body p-0">
+      <% if (productos.length === 0) { %>
+        <div class="empty-state">
+          <i data-lucide="package"></i>
+          <p>No se encontraron productos<% if (busqueda) { %> para "<%= busqueda %>"<% } %>.</p>
+          <button type="button" class="btn btn-primary" onclick="MascoModal.open('modal-crear-producto')">Registrar primer producto</button>
+        </div>
+      <% } else { %>
+        <div class="table-responsive">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Código</th>
+                <th>Nombre</th>
+                <th>Categoría</th>
+                <th>Proveedor</th>
+                <th class="text-right">Precio Venta</th>
+                <th class="text-center">Stock</th>
+                <th class="text-center">Estado Stock</th>
+                <th class="text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% productos.forEach((producto, index) => { %>
+                <%
+                  let stockBadge = 'badge-success';
+                  let stockLabel = 'OK';
+                  if (producto.estadoStock === 'SIN_STOCK') {
+                    stockBadge = 'badge-danger';
+                    stockLabel = 'Sin Stock';
+                  } else if (producto.estadoStock === 'STOCK_BAJO') {
+                    stockBadge = 'badge-warning';
+                    stockLabel = 'Stock Bajo';
+                  }
+                %>
+                <tr>
+                  <td><%= ((pagina - 1) * 20) + index + 1 %></td>
+                  <td>
+                    <code style="font-size: 0.8rem;"><%= producto.codigoBarras || '—' %></code>
+                  </td>
+                  <td>
+                    <span class="fw-semibold"><%= producto.nombre %></span>
+                  </td>
+                  <td><%= producto.categoria ? producto.categoria.nombre : '—' %></td>
+                  <td><%= producto.proveedor ? producto.proveedor.nombreEmpresa : '—' %></td>
+                  <td class="text-right fw-semibold">
+                    S/. <%= parseFloat(producto.precioVenta).toFixed(2) %>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge <%= stockBadge %>"><%= producto.stockActual %></span>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge <%= stockBadge %>"><%= stockLabel %></span>
+                  </td>
+                  <td class="text-center">
+                    <div class="action-buttons">
+                      <button type="button" class="btn btn-sm btn-info" title="Ver detalle" onclick="MascoGestion.ver('producto', <%= producto.id %>)">
+                        <i data-lucide="eye"></i>
+                      </button>
+                      <button type="button" class="btn btn-sm btn-warning" title="Editar" onclick="MascoGestion.editar('producto', <%= producto.id %>)">
+                        <i data-lucide="pencil"></i>
+                      </button>
+                      <form method="POST" action="/productos/<%= producto.id %>?_method=DELETE" style="display:inline;"
+                            onsubmit="return confirmarEliminar(event, '<%= producto.nombre %>')">
+                        <button type="submit" class="btn btn-sm btn-danger" title="Eliminar">
+                          <i data-lucide="trash-2"></i>
+                        </button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Paginación -->
+        <% if (totalPaginas > 1) { %>
+          <div class="pagination-wrapper">
+            <div class="pagination-info">
+              Página <%= pagina %> de <%= totalPaginas %> — <%= totalRegistros %> registros en total
+            </div>
+            <div class="pagination">
+              <% if (pagina > 1) { %>
+                <a href="/productos?pagina=<%= pagina - 1 %>&busqueda=<%= busqueda %>&idCategoria=<%= idCategoria %>&idProveedor=<%= idProveedor %>" class="page-link">
+                  <i data-lucide="chevron-left"></i>
+                </a>
+              <% } %>
+
+              <% for (let i = Math.max(1, pagina - 2); i <= Math.min(totalPaginas, pagina + 2); i++) { %>
+                <a href="/productos?pagina=<%= i %>&busqueda=<%= busqueda %>&idCategoria=<%= idCategoria %>&idProveedor=<%= idProveedor %>"
+                   class="page-link <%= i === pagina ? 'active' : '' %>">
+                  <%= i %>
+                </a>
+              <% } %>
+
+              <% if (pagina < totalPaginas) { %>
+                <a href="/productos?pagina=<%= pagina + 1 %>&busqueda=<%= busqueda %>&idCategoria=<%= idCategoria %>&idProveedor=<%= idProveedor %>" class="page-link">
+                  <i data-lucide="chevron-right"></i>
+                </a>
+              <% } %>
+            </div>
+          </div>
+        <% } %>
+      <% } %>
+    </div>
+  </div>
+
+
+<script>
+  function confirmarEliminar(event, nombre) {
+    event.preventDefault();
+    const form = event.target;
+    Swal.fire({
+      title: '¿Eliminar producto?',
+      text: `Se eliminará "${nombre}". Esta acción no se puede deshacer.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+      background: '#1e293b',
+      color: '#f8fafc',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        form.submit();
+      }
+    });
+    return false;
+  }
+</script>
+
+<%- include('../partials/modals/producto-crear') %>
+
+<%- include('../partials/footer') %>

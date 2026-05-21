@@ -1,0 +1,74 @@
+<div class="detail-grid">
+  <div class="detail-item">
+    <span class="detail-label">Comprobante</span>
+    <span class="detail-value fw-semibold"><%= venta.numeroComprobante || ('#' + venta.id) %></span>
+  </div>
+  <div class="detail-item">
+    <span class="detail-label">Estado</span>
+    <span class="detail-value">
+      <% if (venta.estado === 'ANULADA') { %>
+        <span class="badge badge-danger">Anulada</span>
+      <% } else { %>
+        <span class="badge badge-success">Completada</span>
+      <% } %>
+    </span>
+  </div>
+  <div class="detail-item">
+    <span class="detail-label">Fecha</span>
+    <span class="detail-value"><%= venta.fechaVenta ? new Date(venta.fechaVenta).toLocaleString('es-PE') : '—' %></span>
+  </div>
+  <div class="detail-item">
+    <span class="detail-label">Cliente</span>
+    <span class="detail-value"><%= venta.cliente ? venta.cliente.nombreCompleto : 'Cliente general' %></span>
+  </div>
+  <div class="detail-item">
+    <span class="detail-label">Vendedor / Pago</span>
+    <span class="detail-value"><%= venta.usuario ? venta.usuario.nombre : '—' %> · <%= venta.metodoPago %></span>
+  </div>
+  <div class="detail-item">
+    <span class="detail-label">Total</span>
+    <span class="detail-value fw-semibold" style="color:var(--secondary);font-size:1.15rem;">S/. <%= parseFloat(venta.total).toFixed(2) %></span>
+  </div>
+</div>
+
+<% if (venta.detalles && venta.detalles.length) { %>
+  <h4 style="margin:1rem 0 0.5rem;font-size:0.95rem;color:var(--text-muted);">Productos</h4>
+  <div class="table-responsive">
+    <table class="table table-striped table-sm">
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th class="text-center">Cant.</th>
+          <th class="text-end">P. unit.</th>
+          <th class="text-end">Subtotal</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% venta.detalles.forEach(d => { %>
+          <tr>
+            <td><%= d.producto ? d.producto.nombre : '—' %></td>
+            <td class="text-center"><%= d.cantidad %></td>
+            <td class="text-end">S/. <%= parseFloat(d.precioUnitario).toFixed(2) %></td>
+            <td class="text-end">S/. <%= parseFloat(d.subtotal).toFixed(2) %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+<% } %>
+
+<div class="modal-fragment-footer">
+  <a href="/ventas/<%= venta.id %>/imprimir" class="btn btn-sm btn-secondary" target="_blank">
+    <i data-lucide="printer"></i> Imprimir
+  </a>
+  <a href="/ventas/<%= venta.id %>" class="btn btn-sm btn-outline">Vista completa</a>
+  <% if (venta.estado === 'COMPLETADA') { %>
+    <form id="form-anular-venta-modal" action="/ventas/<%= venta.id %>/anular" method="POST" style="display:inline;">
+      <input type="hidden" name="_method" value="PUT">
+      <input type="hidden" name="returnTo" value="list">
+      <button type="button" class="btn btn-sm btn-danger" onclick="confirmarAnularVentaModal()">
+        <i data-lucide="ban"></i> Anular
+      </button>
+    </form>
+  <% } %>
+</div>

@@ -1,0 +1,106 @@
+<%- include('../partials/head', { title: title }) %>
+<%- include('../partials/sidebar') %>
+
+
+  <div class="page-header">
+    <div class="page-header-left">
+      <nav class="breadcrumb">
+        <a href="/usuarios" class="breadcrumb-link">Usuarios</a>
+        <span class="breadcrumb-sep">/</span>
+        <span>Editar</span>
+      </nav>
+    </div>
+    <div class="page-header-right">
+      <a href="/usuarios/<%= usuario.id %>/cambiar-clave" class="btn btn-secondary">
+        <i data-lucide="key"></i>
+        Cambiar contraseña
+      </a>
+      <a href="/usuarios" class="btn btn-outline">
+        <i data-lucide="arrow-left"></i>
+        Volver
+      </a>
+    </div>
+  </div>
+
+  <div class="card" style="max-width: 640px; margin: 0 auto;">
+    <div class="card-header">
+      <span class="card-title">
+        <i data-lucide="pencil"></i>
+        Editar Usuario
+        <% if (usuario.estado === 1) { %>
+          <span class="badge badge-success">Activo</span>
+        <% } else { %>
+          <span class="badge badge-danger">Inactivo</span>
+        <% } %>
+      </span>
+    </div>
+    <div class="card-body">
+      <form method="POST" action="/usuarios/<%= usuario.id %>?_method=PUT" novalidate>
+        <div class="form-group">
+          <label for="nombre" class="form-label">Nombre completo <span class="text-danger">*</span></label>
+          <input
+            type="text"
+            id="nombre"
+            name="nombre"
+            class="form-control"
+            value="<%= usuario.nombre %>"
+            minlength="3"
+            maxlength="100"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="usuario" class="form-label">Nombre de usuario <span class="text-danger">*</span></label>
+          <input
+            type="text"
+            id="usuario"
+            name="usuario"
+            class="form-control"
+            value="<%= usuario.usuario %>"
+            minlength="4"
+            maxlength="50"
+            pattern="[a-zA-Z0-9._-]+"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="correo" class="form-label">Correo electrónico</label>
+          <input
+            type="email"
+            id="correo"
+            name="correo"
+            class="form-control"
+            value="<%= usuario.correo || '' %>"
+            maxlength="255"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="idPerfil" class="form-label">Perfil <span class="text-danger">*</span></label>
+          <select id="idPerfil" name="idPerfil" class="form-control" required>
+            <% perfiles.forEach(p => { %>
+              <option value="<%= p.id %>" <%= usuario.idPerfil == p.id ? 'selected' : '' %>><%= p.nombre %></option>
+            <% }) %>
+          </select>
+        </div>
+
+        <p class="text-muted" style="font-size: 0.875rem; margin-bottom: 1rem;">
+          Para cambiar la contraseña use la opción
+          <a href="/usuarios/<%= usuario.id %>/cambiar-clave">Cambiar contraseña</a>.
+        </p>
+
+        <div class="form-actions">
+          <a href="/usuarios" class="btn btn-outline">Cancelar</a>
+          <button type="submit" class="btn btn-primary">
+            <i data-lucide="save"></i>
+            Guardar cambios
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+<%- include('../partials/footer') %>

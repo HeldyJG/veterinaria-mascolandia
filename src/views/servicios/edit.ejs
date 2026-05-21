@@ -1,0 +1,95 @@
+<%- include('../partials/head', { title: title }) %>
+<%- include('../partials/sidebar') %>
+
+
+  <!-- Breadcrumb -->
+  <div class="page-header">
+    <div class="page-header-left">
+      <nav class="breadcrumb">
+        <a href="/servicios" class="breadcrumb-link">Servicios</a>
+        <span class="breadcrumb-sep">/</span>
+        <span>Editar Servicio</span>
+      </nav>
+    </div>
+    <div class="page-header-right">
+      <a href="/servicios" class="btn btn-outline">
+        <i data-lucide="arrow-left"></i>
+        Volver
+      </a>
+    </div>
+  </div>
+
+  <!-- Formulario -->
+  <div class="card" style="max-width: 600px; margin: 0 auto;">
+    <div class="card-header">
+      <span class="card-title">
+        <i data-lucide="pencil"></i>
+        Editar Servicio
+      </span>
+    </div>
+    <div class="card-body">
+      <form method="POST" action="/servicios/<%= servicio.id %>?_method=PUT" novalidate>
+
+        <!-- Nombre -->
+        <div class="form-group">
+          <label for="nombre" class="form-label">
+            Nombre del Servicio <span class="text-danger">*</span>
+          </label>
+          <input
+            type="text"
+            id="nombre"
+            name="nombre"
+            class="form-control"
+            value="<%= servicio.nombre %>"
+            maxlength="150"
+            required
+          />
+          <small class="form-hint">Mínimo 3 caracteres, máximo 150. Debe ser único.</small>
+        </div>
+
+        <!-- Descripción -->
+        <div class="form-group">
+          <label for="descripcion" class="form-label">Descripción</label>
+          <textarea
+            id="descripcion"
+            name="descripcion"
+            class="form-control"
+            rows="3"
+            maxlength="500"
+          ><%= servicio.descripcion || '' %></textarea>
+          <small class="form-hint">Opcional. Máximo 500 caracteres.</small>
+        </div>
+
+        <!-- Precio -->
+        <div class="form-group">
+          <label for="precio" class="form-label">
+            Precio (S/.) <span class="text-danger">*</span>
+          </label>
+          <input
+            type="number"
+            id="precio"
+            name="precio"
+            class="form-control"
+            value="<%= parseFloat(servicio.precio).toFixed(2) %>"
+            min="0.01"
+            step="0.01"
+            required
+          />
+          <small class="form-hint">Debe ser un valor mayor a 0.</small>
+        </div>
+
+        <!-- Botones -->
+        <div class="form-actions">
+          <a href="/servicios" class="btn btn-outline">Cancelar</a>
+          <button type="submit" class="btn btn-primary">
+            <i data-lucide="save"></i>
+            Guardar Cambios
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+
+<%- include('../partials/footer') %>

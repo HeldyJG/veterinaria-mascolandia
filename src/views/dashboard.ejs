@@ -1,0 +1,273 @@
+<%- include('partials/head', { title: title }) %>
+  <%- include('partials/sidebar') %>
+
+  <div class="grid-stats" style="margin-bottom: 1.5rem;">
+    <div class="stat-card" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(168, 85, 247, 0.08));">
+      <div class="stat-icon">
+        <i data-lucide="dollar-sign" style="width: 28px; height: 28px;"></i>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value">S/. <%= stats.ingresosMesTotal.toFixed(2) %></div>
+        <div class="stat-label">Ingresos del mes</div>
+        <small class="text-muted">Ventas: S/. <%= stats.ingresosVentasMes.toFixed(2) %></small>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon warning">
+        <i data-lucide="calendar-clock" style="width: 28px; height: 28px;"></i>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value"><%= stats.citasPendientesHoy %></div>
+        <div class="stat-label">Citas pendientes hoy</div>
+        <small class="text-muted"><%= stats.totalCitasHoy %> citas programadas hoy</small>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon secondary">
+        <i data-lucide="calendar-range" style="width: 28px; height: 28px;"></i>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value"><%= stats.totalCitasMes %></div>
+        <div class="stat-label">Citas del mes</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon danger">
+        <i data-lucide="package-x" style="width: 28px; height: 28px;"></i>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value"><%= stats.productosStockBajo + stats.productosSinStock %></div>
+        <div class="stat-label">Alertas de inventario</div>
+        <small class="text-muted"><%= stats.productosSinStock %> sin stock · <%= stats.productosStockBajo %> bajo mínimo</small>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">
+        <i data-lucide="users" style="width: 28px; height: 28px;"></i>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value"><%= stats.totalClientes %></div>
+        <div class="stat-label">Clientes activos</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon secondary">
+        <i data-lucide="heart" style="width: 28px; height: 28px;"></i>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value"><%= stats.totalMascotas %></div>
+        <div class="stat-label">Mascotas registradas</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dashboard-charts">
+    <div class="card-premium" style="padding: 1.25rem;">
+      <div class="card-premium-title" style="margin-bottom: 1rem;">Ingresos — últimos 6 meses</div>
+      <canvas id="chart-ingresos" height="120"></canvas>
+    </div>
+    <div class="card-premium" style="padding: 1.25rem;">
+      <div class="card-premium-title" style="margin-bottom: 1rem;">Citas del mes por estado</div>
+      <canvas id="chart-citas-estado" height="120"></canvas>
+    </div>
+  </div>
+
+  <div class="dashboard-tables">
+    <div class="card-premium">
+      <div class="card-premium-header">
+        <div class="card-premium-title">Últimas ventas</div>
+        <a href="/ventas" class="btn-premium-sm primary">Ver ventas</a>
+      </div>
+      <div class="table-responsive">
+        <table class="table-premium">
+          <thead>
+            <tr>
+              <th>Comprobante</th>
+              <th>Cliente</th>
+              <th class="text-end">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (ultimasVentas && ultimasVentas.length > 0) { %>
+              <% ultimasVentas.forEach(v => { %>
+                <tr>
+                  <td>
+                    <a href="/ventas/<%= v.id %>" style="color: var(--primary); font-weight: 600;">
+                      <%= v.numeroComprobante || ('#' + v.id) %>
+                    </a>
+                    <small class="text-muted d-block"><%= v.tipoComprobante %></small>
+                  </td>
+                  <td><%= v.cliente ? v.cliente.nombreCompleto : 'Cliente general' %></td>
+                  <td class="text-end fw-semibold">S/. <%= parseFloat(v.total).toFixed(2) %></td>
+                </tr>
+              <% }) %>
+            <% } else { %>
+              <tr>
+                <td colspan="3" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
+                  No hay ventas registradas.
+                  <a href="/ventas?modal=modal-crear-venta" class="d-block" style="margin-top: 0.5rem;">Crear primera venta</a>
+                </td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card-premium">
+      <div class="card-premium-header">
+        <div class="card-premium-title">Próximas citas (7 días)</div>
+        <a href="/citas" class="btn-premium-sm primary">Ver citas</a>
+      </div>
+      <div class="table-responsive">
+        <table class="table-premium">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Mascota</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (proximasCitas && proximasCitas.length > 0) { %>
+              <% proximasCitas.forEach(cita => { %>
+                <tr>
+                  <td style="white-space: nowrap;">
+                    <%= cita.fecha %>
+                    <small class="text-muted d-block"><%= cita.hora %> · <%= cita.turno %></small>
+                  </td>
+                  <td>
+                    <a href="/citas/<%= cita.id %>" style="font-weight: 600; color: var(--primary);">
+                      <%= cita.mascota ? cita.mascota.nombre : 'N/A' %>
+                    </a>
+                    <small class="text-muted d-block">
+                      <%= (cita.mascota && cita.mascota.cliente) ? cita.mascota.cliente.nombreCompleto : '' %>
+                    </small>
+                  </td>
+                  <td>
+                    <% if (cita.estado === 'CONFIRMADA') { %>
+                      <span class="badge-premium badge-success"><%= cita.estado %></span>
+                    <% } else if (cita.estado === 'PENDIENTE' || cita.estado === 'EN_ESPERA') { %>
+                      <span class="badge-premium badge-warning"><%= cita.estado %></span>
+                    <% } else { %>
+                      <span class="badge-premium"><%= cita.estado %></span>
+                    <% } %>
+                  </td>
+                </tr>
+              <% }) %>
+            <% } else { %>
+              <tr>
+                <td colspan="3" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
+                  No hay citas pendientes en los próximos 7 días.
+                </td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <% if (productosAlerta && productosAlerta.length > 0) { %>
+    <div class="card-premium">
+      <div class="card-premium-header">
+        <div class="card-premium-title">Productos con stock bajo o agotado</div>
+        <a href="/productos" class="btn-premium-sm primary">Ir a inventario</a>
+      </div>
+      <div class="table-responsive">
+        <table class="table-premium">
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th class="text-center">Stock actual</th>
+              <th class="text-center">Stock mínimo</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% productosAlerta.forEach(p => { %>
+              <tr>
+                <td><a href="/productos/<%= p.id %>"><%= p.nombre %></a></td>
+                <td class="text-center"><%= p.stockActual %></td>
+                <td class="text-center"><%= p.stockMinimo %></td>
+                <td>
+                  <% if (p.stockActual === 0) { %>
+                    <span class="badge-premium badge-danger">Sin stock</span>
+                  <% } else { %>
+                    <span class="badge-premium badge-warning">Stock bajo</span>
+                  <% } %>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  <% } %>
+
+  <script>
+    const ingresosData = <%- chartIngresos %>;
+    const citasEstadoData = <%- chartCitasEstado %>;
+    const dashboardCharts = [];
+
+    function chartThemeOpts() {
+      const p = window.MascoTheme ? MascoTheme.chartPalette() : { text: '#94a3b8', grid: 'rgba(255,255,255,0.05)' };
+      return {
+        plugins: { legend: { labels: { color: p.text } } },
+        scales: {
+          x: { stacked: true, ticks: { color: p.text }, grid: { color: p.grid } },
+          y: {
+            stacked: true,
+            ticks: { color: p.text, callback: (v) => 'S/. ' + v },
+            grid: { color: p.grid },
+          },
+        },
+      };
+    }
+
+    function renderDashboardCharts() {
+      dashboardCharts.forEach((c) => c.destroy());
+      dashboardCharts.length = 0;
+      const p = window.MascoTheme ? MascoTheme.chartPalette() : { text: '#94a3b8', grid: 'rgba(255,255,255,0.05)' };
+
+      const ctxIngresos = document.getElementById('chart-ingresos');
+      if (ctxIngresos && ingresosData.length) {
+        dashboardCharts.push(new Chart(ctxIngresos, {
+          type: 'bar',
+          data: {
+            labels: ingresosData.map((d) => d.label),
+            datasets: [
+              { label: 'Ventas', data: ingresosData.map((d) => d.ventas), backgroundColor: 'rgba(99, 102, 241, 0.7)', borderRadius: 6 },
+              { label: 'Servicios / Baños', data: ingresosData.map((d) => d.otros), backgroundColor: 'rgba(16, 185, 129, 0.7)', borderRadius: 6 },
+            ],
+          },
+          options: { responsive: true, ...chartThemeOpts() },
+        }));
+      }
+
+      const ctxCitas = document.getElementById('chart-citas-estado');
+      if (ctxCitas && citasEstadoData.labels.length) {
+        dashboardCharts.push(new Chart(ctxCitas, {
+          type: 'doughnut',
+          data: {
+            labels: citasEstadoData.labels,
+            datasets: [{
+              data: citasEstadoData.valores,
+              backgroundColor: ['rgba(245,158,11,0.8)','rgba(16,185,129,0.8)','rgba(99,102,241,0.8)','rgba(239,68,68,0.8)','rgba(148,163,184,0.8)'],
+            }],
+          },
+          options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { color: p.text, padding: 12 } } } },
+        }));
+      }
+    }
+
+    renderDashboardCharts();
+    document.addEventListener('mascolandia-theme-change', renderDashboardCharts);
+  </script>
+
+  <%- include('partials/footer') %>

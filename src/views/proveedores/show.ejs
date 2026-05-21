@@ -1,0 +1,161 @@
+<%- include('../partials/head', { title: title }) %>
+<%- include('../partials/sidebar') %>
+
+
+  <!-- Breadcrumb -->
+  <div class="page-header">
+    <div class="page-header-left">
+      <nav class="breadcrumb">
+        <a href="/proveedores" class="breadcrumb-link">Proveedores</a>
+        <span class="breadcrumb-sep">/</span>
+        <span><%= proveedor.nombreEmpresa %></span>
+      </nav>
+    </div>
+    <div class="page-header-right">
+      <a href="/proveedores/<%= proveedor.id %>/editar" class="btn btn-warning">
+        <i data-lucide="pencil"></i>
+        Editar
+      </a>
+      <a href="/proveedores" class="btn btn-outline">
+        <i data-lucide="arrow-left"></i>
+        Volver
+      </a>
+    </div>
+  </div>
+
+  <!-- Detalle del proveedor -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <span class="card-title">
+        <i data-lucide="building-2"></i>
+        Información del Proveedor
+      </span>
+    </div>
+    <div class="card-body">
+      <div class="detail-grid">
+
+        <div class="detail-item">
+          <span class="detail-label">Nombre de Empresa</span>
+          <span class="detail-value fw-semibold"><%= proveedor.nombreEmpresa %></span>
+        </div>
+
+        <div class="detail-item">
+          <span class="detail-label">RUC</span>
+          <span class="detail-value"><%= proveedor.ruc || '—' %></span>
+        </div>
+
+        <div class="detail-item">
+          <span class="detail-label">Teléfono</span>
+          <span class="detail-value"><%= proveedor.telefono %></span>
+        </div>
+
+        <div class="detail-item">
+          <span class="detail-label">Correo Electrónico</span>
+          <span class="detail-value"><%= proveedor.correo || '—' %></span>
+        </div>
+
+        <div class="detail-item" style="grid-column: 1 / -1;">
+          <span class="detail-label">Dirección</span>
+          <span class="detail-value"><%= proveedor.direccion || '—' %></span>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Productos Activos -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <span class="card-title">
+        <i data-lucide="package-check"></i>
+        Productos Activos
+        <span class="badge badge-success"><%= productosActivos.length %></span>
+      </span>
+    </div>
+    <div class="card-body p-0">
+      <% if (productosActivos.length === 0) { %>
+        <div class="empty-state">
+          <i data-lucide="package-x"></i>
+          <p>Este proveedor no tiene productos activos registrados.</p>
+        </div>
+      <% } else { %>
+        <div class="table-responsive">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Nombre</th>
+                <th>Categoría</th>
+                <th class="text-center">Precio Compra</th>
+                <th class="text-center">Precio Venta</th>
+                <th class="text-center">Stock</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% productosActivos.forEach((producto, index) => { %>
+                <tr>
+                  <td><%= index + 1 %></td>
+                  <td class="fw-semibold"><%= producto.nombre %></td>
+                  <td><%= producto.categoria ? producto.categoria.nombre : '—' %></td>
+                  <td class="text-center">S/. <%= parseFloat(producto.precioCompra || 0).toFixed(2) %></td>
+                  <td class="text-center">S/. <%= parseFloat(producto.precioVenta || 0).toFixed(2) %></td>
+                  <td class="text-center">
+                    <span class="badge <%= producto.stock <= 0 ? 'badge-danger' : (producto.stock <= 5 ? 'badge-warning' : 'badge-success') %>">
+                      <%= producto.stock %>
+                    </span>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Productos Inactivos -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">
+        <i data-lucide="package-x"></i>
+        Productos Inactivos
+        <span class="badge badge-secondary"><%= productosInactivos.length %></span>
+      </span>
+    </div>
+    <div class="card-body p-0">
+      <% if (productosInactivos.length === 0) { %>
+        <div class="empty-state">
+          <i data-lucide="check-circle"></i>
+          <p>No hay productos inactivos para este proveedor.</p>
+        </div>
+      <% } else { %>
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Nombre</th>
+                <th>Categoría</th>
+                <th class="text-center">Precio Compra</th>
+                <th class="text-center">Precio Venta</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% productosInactivos.forEach((producto, index) => { %>
+                <tr class="text-muted">
+                  <td><%= index + 1 %></td>
+                  <td><%= producto.nombre %></td>
+                  <td><%= producto.categoria ? producto.categoria.nombre : '—' %></td>
+                  <td class="text-center">S/. <%= parseFloat(producto.precioCompra || 0).toFixed(2) %></td>
+                  <td class="text-center">S/. <%= parseFloat(producto.precioVenta || 0).toFixed(2) %></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+
+<%- include('../partials/footer') %>

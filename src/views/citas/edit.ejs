@@ -1,0 +1,172 @@
+<%- include('../partials/head', { title: title }) %>
+<%- include('../partials/sidebar') %>
+
+
+  <!-- Breadcrumb -->
+  <div class="page-header">
+    <div class="page-header-left">
+      <nav class="breadcrumb">
+        <a href="/citas" class="breadcrumb-link">Citas</a>
+        <span class="breadcrumb-sep">/</span>
+        <a href="/citas/<%= cita.id %>" class="breadcrumb-link">Cita #<%= cita.id %></a>
+        <span class="breadcrumb-sep">/</span>
+        <span>Editar</span>
+      </nav>
+    </div>
+    <div class="page-header-right">
+      <a href="/citas/<%= cita.id %>" class="btn btn-outline">
+        <i data-lucide="arrow-left"></i>
+        Volver
+      </a>
+    </div>
+  </div>
+
+  <!-- Formulario -->
+  <div class="card" style="max-width: 720px; margin: 0 auto;">
+    <div class="card-header">
+      <span class="card-title">
+        <i data-lucide="pencil"></i>
+        Editar Cita #<%= cita.id %>
+      </span>
+    </div>
+    <div class="card-body">
+      <form method="POST" action="/citas/<%= cita.id %>?_method=PUT" novalidate>
+
+        <!-- Mascota -->
+        <div class="form-group">
+          <label for="idMascota" class="form-label">
+            Mascota <span class="text-danger">*</span>
+          </label>
+          <select id="idMascota" name="idMascota" class="form-control" required>
+            <option value="">— Seleccione una mascota —</option>
+            <% mascotas.forEach(mascota => { %>
+              <option value="<%= mascota.id %>" <%= cita.idMascota == mascota.id ? 'selected' : '' %>>
+                <%= mascota.nombre %>
+                <% if (mascota.cliente) { %> — <%= mascota.cliente.nombreCompleto %><% } %>
+                <% if (mascota.raza) { %> (<%= mascota.raza.nombre %>)<% } %>
+              </option>
+            <% }) %>
+          </select>
+          <small class="form-hint">Seleccione la mascota para la cita.</small>
+        </div>
+
+        <!-- Veterinario -->
+        <div class="form-group">
+          <label for="idUsuario" class="form-label">
+            Veterinario <span class="text-danger">*</span>
+          </label>
+          <select id="idUsuario" name="idUsuario" class="form-control" required>
+            <option value="">— Seleccione un veterinario —</option>
+            <% usuarios.forEach(usuario => { %>
+              <option value="<%= usuario.id %>" <%= cita.idUsuario == usuario.id ? 'selected' : '' %>>
+                <%= usuario.nombre %>
+              </option>
+            <% }) %>
+          </select>
+          <small class="form-hint">Veterinario o profesional que atenderá la cita.</small>
+        </div>
+
+        <!-- Servicio -->
+        <div class="form-group">
+          <label for="idServicio" class="form-label">
+            Servicio <span class="text-danger">*</span>
+          </label>
+          <select id="idServicio" name="idServicio" class="form-control" required>
+            <option value="">— Seleccione un servicio —</option>
+            <% servicios.forEach(servicio => { %>
+              <option value="<%= servicio.id %>" <%= cita.idServicio == servicio.id ? 'selected' : '' %>>
+                <%= servicio.nombre %>
+              </option>
+            <% }) %>
+          </select>
+          <small class="form-hint">Tipo de servicio a realizar.</small>
+        </div>
+
+        <!-- Fecha y Hora -->
+        <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label for="fecha" class="form-label">
+              Fecha <span class="text-danger">*</span>
+            </label>
+            <input
+              type="date"
+              id="fecha"
+              name="fecha"
+              class="form-control"
+              value="<%= cita.fecha %>"
+              required
+            />
+            <small class="form-hint">Fecha de la cita.</small>
+          </div>
+
+          <div class="form-group">
+            <label for="hora" class="form-label">
+              Hora <span class="text-danger">*</span>
+            </label>
+            <input
+              type="time"
+              id="hora"
+              name="hora"
+              class="form-control"
+              value="<%= cita.hora ? cita.hora.substring(0, 5) : '' %>"
+              required
+            />
+            <small class="form-hint">Hora de inicio de la cita.</small>
+          </div>
+        </div>
+
+        <!-- Turno -->
+        <div class="form-group">
+          <label for="turno" class="form-label">
+            Turno <span class="text-danger">*</span>
+          </label>
+          <select id="turno" name="turno" class="form-control" required>
+            <option value="">— Seleccione un turno —</option>
+            <option value="MANANA" <%= cita.turno === 'MANANA' ? 'selected' : '' %>>Mañana</option>
+            <option value="TARDE"  <%= cita.turno === 'TARDE'  ? 'selected' : '' %>>Tarde</option>
+          </select>
+          <small class="form-hint">Turno en el que se realizará la cita.</small>
+        </div>
+
+        <!-- Estado -->
+        <div class="form-group">
+          <label for="estado" class="form-label">Estado</label>
+          <select id="estado" name="estado" class="form-control">
+            <option value="PENDIENTE"  <%= cita.estado === 'PENDIENTE'  ? 'selected' : '' %>>Pendiente</option>
+            <option value="CONFIRMADA" <%= cita.estado === 'CONFIRMADA' ? 'selected' : '' %>>Confirmada</option>
+            <option value="ATENDIDA"   <%= cita.estado === 'ATENDIDA'   ? 'selected' : '' %>>Atendida</option>
+            <option value="CANCELADA"  <%= cita.estado === 'CANCELADA'  ? 'selected' : '' %>>Cancelada</option>
+            <option value="EN_ESPERA"  <%= cita.estado === 'EN_ESPERA'  ? 'selected' : '' %>>En Espera</option>
+          </select>
+          <small class="form-hint">Estado actual de la cita.</small>
+        </div>
+
+        <!-- Motivo / Detalle -->
+        <div class="form-group">
+          <label for="motivoDetalle" class="form-label">Motivo / Detalle</label>
+          <textarea
+            id="motivoDetalle"
+            name="motivoDetalle"
+            class="form-control"
+            rows="3"
+            placeholder="Describa el motivo de la consulta o detalles adicionales (opcional)..."
+            maxlength="500"
+          ><%= cita.motivoDetalle || '' %></textarea>
+          <small class="form-hint">Opcional. Información adicional sobre la cita.</small>
+        </div>
+
+        <!-- Botones -->
+        <div class="form-actions">
+          <a href="/citas/<%= cita.id %>" class="btn btn-outline">Cancelar</a>
+          <button type="submit" class="btn btn-primary">
+            <i data-lucide="save"></i>
+            Guardar Cambios
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+
+<%- include('../partials/footer') %>

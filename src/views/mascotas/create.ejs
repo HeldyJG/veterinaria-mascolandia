@@ -1,0 +1,243 @@
+<%- include('../partials/head', { title: title }) %>
+<%- include('../partials/sidebar') %>
+
+
+  <!-- Breadcrumb -->
+  <div class="page-header">
+    <div class="page-header-left">
+      <nav class="breadcrumb">
+        <a href="/mascotas" class="breadcrumb-link">Mascotas</a>
+        <span class="breadcrumb-sep">/</span>
+        <span>Nueva Mascota</span>
+      </nav>
+    </div>
+    <div class="page-header-right">
+      <a href="/mascotas" class="btn btn-outline">
+        <i data-lucide="arrow-left"></i>
+        Volver
+      </a>
+    </div>
+  </div>
+
+  <!-- Formulario -->
+  <div class="card" style="max-width: 720px; margin: 0 auto;">
+    <div class="card-header">
+      <span class="card-title">
+        <i data-lucide="plus-circle"></i>
+        Registrar Nueva Mascota
+      </span>
+    </div>
+    <div class="card-body">
+      <form method="POST" action="/mascotas" enctype="multipart/form-data" novalidate>
+
+        <!-- Nombre -->
+        <div class="form-group">
+          <label for="nombre" class="form-label">
+            Nombre <span class="text-danger">*</span>
+          </label>
+          <input
+            type="text"
+            id="nombre"
+            name="nombre"
+            class="form-control"
+            placeholder="Ej: Firulais"
+            maxlength="100"
+            required
+          />
+        </div>
+
+        <!-- Cliente -->
+        <div class="form-group">
+          <label for="idCliente" class="form-label">
+            Cliente <span class="text-danger">*</span>
+          </label>
+          <select id="idCliente" name="idCliente" class="form-control" required>
+            <option value="">— Seleccionar cliente —</option>
+            <% clientes.forEach(cliente => { %>
+              <option value="<%= cliente.id %>"><%= cliente.nombreCompleto %></option>
+            <% }) %>
+          </select>
+        </div>
+
+        <!-- Especie (para filtrar razas) -->
+        <div class="form-group">
+          <label for="idEspecie" class="form-label">Especie</label>
+          <select id="idEspecie" name="idEspecie" class="form-control">
+            <option value="">— Todas las especies —</option>
+            <% especies.forEach(especie => { %>
+              <option value="<%= especie.id %>"><%= especie.nombre %></option>
+            <% }) %>
+          </select>
+          <small class="form-hint">Selecciona una especie para filtrar las razas disponibles.</small>
+        </div>
+
+        <!-- Raza -->
+        <div class="form-group">
+          <label for="idRaza" class="form-label">
+            Raza <span class="text-danger">*</span>
+          </label>
+          <select id="idRaza" name="idRaza" class="form-control" required>
+            <option value="">— Seleccionar raza —</option>
+            <% razas.forEach(raza => { %>
+              <option value="<%= raza.id %>"><%= raza.nombre %></option>
+            <% }) %>
+          </select>
+        </div>
+
+        <!-- Sexo -->
+        <div class="form-group">
+          <label for="sexo" class="form-label">Sexo</label>
+          <select id="sexo" name="sexo" class="form-control">
+            <option value="">— No especificado —</option>
+            <option value="MACHO">Macho</option>
+            <option value="HEMBRA">Hembra</option>
+          </select>
+        </div>
+
+        <!-- Fecha de Nacimiento -->
+        <div class="form-group">
+          <label for="fechaNacimiento" class="form-label">Fecha de Nacimiento</label>
+          <input
+            type="date"
+            id="fechaNacimiento"
+            name="fechaNacimiento"
+            class="form-control"
+            max="<%= new Date().toISOString().split('T')[0] %>"
+          />
+          <small class="form-hint">Opcional. Se usará para calcular la edad.</small>
+        </div>
+
+        <!-- Peso Actual -->
+        <div class="form-group">
+          <label for="pesoActual" class="form-label">Peso Actual (kg)</label>
+          <input
+            type="number"
+            id="pesoActual"
+            name="pesoActual"
+            class="form-control"
+            placeholder="Ej: 5.2"
+            step="0.01"
+            min="0"
+            max="999"
+          />
+        </div>
+
+        <!-- Color -->
+        <div class="form-group">
+          <label for="color" class="form-label">Color / Pelaje</label>
+          <input
+            type="text"
+            id="color"
+            name="color"
+            class="form-control"
+            placeholder="Ej: Marrón con blanco"
+            maxlength="100"
+          />
+        </div>
+
+        <!-- Foto -->
+        <div class="form-group">
+          <label for="foto" class="form-label">Foto</label>
+          <input
+            type="file"
+            id="foto"
+            name="foto"
+            class="form-control"
+            accept="image/*"
+          />
+          <small class="form-hint">Opcional. Formatos: JPG, PNG, WEBP. Máx. 5MB.</small>
+          <!-- Preview de foto -->
+          <div id="fotoPreview" style="display:none; margin-top:10px;">
+            <img id="fotoPreviewImg" src="" alt="Preview"
+              style="max-width:150px; max-height:150px; object-fit:cover; border-radius:8px; border:2px solid #334155;" />
+          </div>
+        </div>
+
+        <!-- Botones -->
+        <div class="form-actions">
+          <a href="/mascotas" class="btn btn-outline">Cancelar</a>
+          <button type="submit" class="btn btn-primary">
+            <i data-lucide="save"></i>
+            Registrar Mascota
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+
+<script>
+  // Carga dinámica de razas según especie seleccionada
+  const selectEspecie = document.getElementById('idEspecie');
+  const selectRaza = document.getElementById('idRaza');
+
+  // Guardar todas las razas iniciales para restaurar si se limpia la especie
+  const todasLasRazas = Array.from(selectRaza.options).map(opt => ({
+    value: opt.value,
+    text: opt.text,
+  }));
+
+  selectEspecie.addEventListener('change', async function () {
+    const idEspecie = this.value;
+
+    // Limpiar select de razas
+    selectRaza.innerHTML = '<option value="">— Cargando razas... —</option>';
+
+    if (!idEspecie) {
+      // Sin especie seleccionada: restaurar todas las razas
+      selectRaza.innerHTML = '<option value="">— Seleccionar raza —</option>';
+      todasLasRazas.forEach(r => {
+        if (r.value) {
+          const opt = document.createElement('option');
+          opt.value = r.value;
+          opt.textContent = r.text;
+          selectRaza.appendChild(opt);
+        }
+      });
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/mascotas/razas/${idEspecie}`);
+      const data = await response.json();
+
+      selectRaza.innerHTML = '<option value="">— Seleccionar raza —</option>';
+
+      if (data.success && data.data.length > 0) {
+        data.data.forEach(raza => {
+          const opt = document.createElement('option');
+          opt.value = raza.id;
+          opt.textContent = raza.nombre;
+          selectRaza.appendChild(opt);
+        });
+      } else {
+        selectRaza.innerHTML = '<option value="">— Sin razas para esta especie —</option>';
+      }
+    } catch (err) {
+      console.error('Error al cargar razas:', err);
+      selectRaza.innerHTML = '<option value="">— Error al cargar razas —</option>';
+    }
+  });
+
+  // Preview de foto al seleccionar archivo
+  document.getElementById('foto').addEventListener('change', function () {
+    const file = this.files[0];
+    const preview = document.getElementById('fotoPreview');
+    const previewImg = document.getElementById('fotoPreviewImg');
+
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        previewImg.src = e.target.result;
+        preview.style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    } else {
+      preview.style.display = 'none';
+      previewImg.src = '';
+    }
+  });
+</script>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,169 @@
+<%- include('../partials/head', { title: title }) %>
+<%- include('../partials/sidebar') %>
+
+
+  <!-- Header de página -->
+  <div class="page-header">
+    <div class="page-header-left">
+      <h2 class="page-subtitle">Lista de clientes registrados</h2>
+    </div>
+    <div class="page-header-right">
+      <button type="button" class="btn btn-primary" onclick="MascoModal.open('modal-crear-cliente')">
+        <i data-lucide="user-plus"></i>
+        Nuevo Cliente
+      </button>
+    </div>
+  </div>
+
+  <!-- Buscador -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <form method="GET" action="/clientes" class="search-form">
+        <div class="input-group">
+          <input
+            type="text"
+            name="busqueda"
+            id="busqueda-clientes"
+            class="form-control"
+            placeholder="Buscar por nombre, DNI o teléfono..."
+            value="<%= busqueda %>"
+            data-live-search="tabla-clientes"
+            data-tooltip="Filtra la tabla al escribir; Enter envía búsqueda al servidor"
+          />
+          <button type="submit" class="btn btn-secondary">
+            <i data-lucide="search"></i>
+            Buscar
+          </button>
+          <% if (busqueda) { %>
+            <a href="/clientes" class="btn btn-outline">
+              <i data-lucide="x"></i>
+              Limpiar
+            </a>
+          <% } %>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Tabla de clientes -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">
+        Clientes
+        <span class="badge badge-info"><%= totalRegistros %> registros</span>
+      </span>
+    </div>
+    <div class="card-body p-0">
+      <% if (clientes.length === 0) { %>
+        <div class="empty-state">
+          <i data-lucide="users"></i>
+          <p>No se encontraron clientes<% if (busqueda) { %> para "<%= busqueda %>"<% } %>.</p>
+          <button type="button" class="btn btn-primary" onclick="MascoModal.open('modal-crear-cliente')">Registrar primer cliente</button>
+        </div>
+      <% } else { %>
+        <div class="table-responsive">
+          <table class="table table-striped" id="tabla-clientes">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Nombre Completo</th>
+                <th>DNI</th>
+                <th>Teléfono</th>
+                <th class="hide-mobile">Correo</th>
+                <th class="text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% clientes.forEach((cliente, index) => { %>
+                <tr>
+                  <td><%= ((pagina - 1) * 20) + index + 1 %></td>
+                  <td>
+                    <span class="fw-semibold"><%= cliente.nombreCompleto %></span>
+                  </td>
+                  <td><%= cliente.dni || '—' %></td>
+                  <td><%= cliente.telefono %></td>
+                  <td class="text-truncate hide-mobile" style="max-width: 200px;" title="<%= cliente.correo || '' %>">
+                    <%= cliente.correo || '—' %>
+                  </td>
+                  <td class="text-center">
+                    <div class="action-buttons">
+                      <button type="button" class="btn btn-sm btn-info" title="Ver detalle" onclick="MascoGestion.ver('cliente', <%= cliente.id %>)">
+                        <i data-lucide="eye"></i>
+                      </button>
+                      <button type="button" class="btn btn-sm btn-warning" title="Editar" onclick="MascoGestion.editar('cliente', <%= cliente.id %>)">
+                        <i data-lucide="pencil"></i>
+                      </button>
+                      <form method="POST" action="/clientes/<%= cliente.id %>?_method=DELETE" style="display:inline;"
+                            onsubmit="return confirmarEliminar(event, '<%= cliente.nombreCompleto %>')">
+                        <button type="submit" class="btn btn-sm btn-danger" title="Eliminar">
+                          <i data-lucide="trash-2"></i>
+                        </button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Paginación -->
+        <% if (totalPaginas > 1) { %>
+          <div class="pagination-wrapper">
+            <div class="pagination-info">
+              Página <%= pagina %> de <%= totalPaginas %> — <%= totalRegistros %> registros en total
+            </div>
+            <div class="pagination">
+              <% if (pagina > 1) { %>
+                <a href="/clientes?pagina=<%= pagina - 1 %>&busqueda=<%= busqueda %>" class="page-link">
+                  <i data-lucide="chevron-left"></i>
+                </a>
+              <% } %>
+
+              <% for (let i = Math.max(1, pagina - 2); i <= Math.min(totalPaginas, pagina + 2); i++) { %>
+                <a href="/clientes?pagina=<%= i %>&busqueda=<%= busqueda %>"
+                   class="page-link <%= i === pagina ? 'active' : '' %>">
+                  <%= i %>
+                </a>
+              <% } %>
+
+              <% if (pagina < totalPaginas) { %>
+                <a href="/clientes?pagina=<%= pagina + 1 %>&busqueda=<%= busqueda %>" class="page-link">
+                  <i data-lucide="chevron-right"></i>
+                </a>
+              <% } %>
+            </div>
+          </div>
+        <% } %>
+      <% } %>
+    </div>
+  </div>
+
+
+<script>
+  function confirmarEliminar(event, nombre) {
+    event.preventDefault();
+    const form = event.target;
+    Swal.fire({
+      title: '¿Eliminar cliente?',
+      text: `Se eliminará a "${nombre}". Esta acción no se puede deshacer.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+      background: '#1e293b',
+      color: '#f8fafc',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        form.submit();
+      }
+    });
+    return false;
+  }
+</script>
+
+<%- include('../partials/modals/cliente-crear') %>
+
+<%- include('../partials/footer') %>

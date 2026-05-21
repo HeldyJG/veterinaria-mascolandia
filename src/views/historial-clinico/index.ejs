@@ -1,0 +1,223 @@
+<%- include('../partials/head', { title: title }) %>
+<%- include('../partials/sidebar') %>
+
+
+  <!-- Header de página -->
+  <div class="page-header">
+    <div class="page-header-left">
+      <h2 class="page-subtitle">Lista de historiales clínicos registrados</h2>
+    </div>
+    <div class="page-header-right">
+      <button type="button" class="btn btn-primary" onclick="MascoModal.open('modal-crear-historial')">
+        <i data-lucide="file-plus"></i>
+        Nuevo Historial
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <form method="GET" action="/historial-clinico" class="search-form">
+        <div class="input-group" style="flex-wrap: wrap; gap: 0.5rem;">
+          <input
+            type="text"
+            name="busqueda"
+            class="form-control"
+            placeholder="Buscar por mascota, cliente, diagnóstico..."
+            value="<%= busqueda %>"
+            style="min-width: 200px; flex: 1;"
+          />
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <label class="form-label mb-0" style="white-space: nowrap;">Desde:</label>
+            <input
+              type="date"
+              name="fechaDesde"
+              class="form-control"
+              value="<%= fechaDesde %>"
+              style="width: 160px;"
+            />
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <label class="form-label mb-0" style="white-space: nowrap;">Hasta:</label>
+            <input
+              type="date"
+              name="fechaHasta"
+              class="form-control"
+              value="<%= fechaHasta %>"
+              style="width: 160px;"
+            />
+          </div>
+          <button type="submit" class="btn btn-secondary">
+            <i data-lucide="search"></i>
+            Buscar
+          </button>
+          <% if (busqueda || fechaDesde || fechaHasta) { %>
+            <a href="/historial-clinico" class="btn btn-outline">
+              <i data-lucide="x"></i>
+              Limpiar
+            </a>
+          <% } %>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Tabla de historiales -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">
+        Historial Clínico
+        <span class="badge badge-info"><%= totalRegistros %> registros</span>
+      </span>
+    </div>
+    <div class="card-body p-0">
+      <% if (historiales.length === 0) { %>
+        <div class="empty-state">
+          <i data-lucide="clipboard-x"></i>
+          <p>No se encontraron historiales clínicos<% if (busqueda) { %> para "<%= busqueda %>"<% } %>.</p>
+          <button type="button" class="btn btn-primary" onclick="MascoModal.open('modal-crear-historial')">Registrar primer historial</button>
+        </div>
+      <% } else { %>
+        <div class="table-responsive">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Mascota</th>
+                <th>Cliente</th>
+                <th>Veterinario</th>
+                <th>Fecha</th>
+                <th>Motivo / Diagnóstico</th>
+                <th class="text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% historiales.forEach((historial, index) => { %>
+                <tr>
+                  <td><%= ((pagina - 1) * 20) + index + 1 %></td>
+                  <td>
+                    <% if (historial.mascota) { %>
+                      <a href="/mascotas/<%= historial.mascota.id %>" class="fw-semibold">
+                        <%= historial.mascota.nombre %>
+                      </a>
+                    <% } else { %>
+                      <span class="text-muted">—</span>
+                    <% } %>
+                  </td>
+                  <td>
+                    <% if (historial.mascota && historial.mascota.cliente) { %>
+                      <a href="/clientes/<%= historial.mascota.cliente.id %>">
+                        <%= historial.mascota.cliente.nombreCompleto %>
+                      </a>
+                    <% } else { %>
+                      <span class="text-muted">—</span>
+                    <% } %>
+                  </td>
+                  <td>
+                    <%= historial.usuario ? historial.usuario.nombre : '—' %>
+                  </td>
+                  <td style="white-space: nowrap;">
+                    <%= historial.fechaRegistro ? new Date(historial.fechaRegistro).toLocaleDateString('es-PE') : '—' %>
+                  </td>
+                  <td style="max-width: 260px;">
+                    <% if (historial.motivoConsulta) { %>
+                      <div class="text-truncate" title="<%= historial.motivoConsulta %>" style="max-width: 260px;">
+                        <small class="text-muted">Motivo:</small>
+                        <%= historial.motivoConsulta.length > 60 ? historial.motivoConsulta.substring(0, 60) + '…' : historial.motivoConsulta %>
+                      </div>
+                    <% } %>
+                    <% if (historial.diagnostico) { %>
+                      <div class="text-truncate" title="<%= historial.diagnostico %>" style="max-width: 260px;">
+                        <small class="text-muted">Dx:</small>
+                        <%= historial.diagnostico.length > 60 ? historial.diagnostico.substring(0, 60) + '…' : historial.diagnostico %>
+                      </div>
+                    <% } %>
+                    <% if (!historial.motivoConsulta && !historial.diagnostico) { %>
+                      <span class="text-muted">—</span>
+                    <% } %>
+                  </td>
+                  <td class="text-center">
+                    <div class="action-buttons">
+                      <a href="/historial-clinico/<%= historial.id %>" class="btn btn-sm btn-info" title="Ver detalle">
+                        <i data-lucide="eye"></i>
+                      </a>
+                      <% if (historial.puedeEditar) { %>
+                        <a href="/historial-clinico/<%= historial.id %>/editar" class="btn btn-sm btn-warning" title="Editar">
+                          <i data-lucide="pencil"></i>
+                        </a>
+                      <% } %>
+                      <form method="POST" action="/historial-clinico/<%= historial.id %>?_method=DELETE" style="display:inline;"
+                            onsubmit="return confirmarEliminar(event, '<%= historial.mascota ? historial.mascota.nombre : historial.id %>')">
+                        <button type="submit" class="btn btn-sm btn-danger" title="Eliminar">
+                          <i data-lucide="trash-2"></i>
+                        </button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Paginación -->
+        <% if (totalPaginas > 1) { %>
+          <div class="pagination-wrapper">
+            <div class="pagination-info">
+              Página <%= pagina %> de <%= totalPaginas %> — <%= totalRegistros %> registros en total
+            </div>
+            <div class="pagination">
+              <% if (pagina > 1) { %>
+                <a href="/historial-clinico?pagina=<%= pagina - 1 %>&busqueda=<%= busqueda %>&fechaDesde=<%= fechaDesde %>&fechaHasta=<%= fechaHasta %>" class="page-link">
+                  <i data-lucide="chevron-left"></i>
+                </a>
+              <% } %>
+
+              <% for (let i = Math.max(1, pagina - 2); i <= Math.min(totalPaginas, pagina + 2); i++) { %>
+                <a href="/historial-clinico?pagina=<%= i %>&busqueda=<%= busqueda %>&fechaDesde=<%= fechaDesde %>&fechaHasta=<%= fechaHasta %>"
+                   class="page-link <%= i === pagina ? 'active' : '' %>">
+                  <%= i %>
+                </a>
+              <% } %>
+
+              <% if (pagina < totalPaginas) { %>
+                <a href="/historial-clinico?pagina=<%= pagina + 1 %>&busqueda=<%= busqueda %>&fechaDesde=<%= fechaDesde %>&fechaHasta=<%= fechaHasta %>" class="page-link">
+                  <i data-lucide="chevron-right"></i>
+                </a>
+              <% } %>
+            </div>
+          </div>
+        <% } %>
+      <% } %>
+    </div>
+  </div>
+
+
+<script>
+  function confirmarEliminar(event, nombre) {
+    event.preventDefault();
+    const form = event.target;
+    Swal.fire({
+      title: '¿Eliminar historial?',
+      text: `Se eliminará el historial de "${nombre}". Esta acción no se puede deshacer.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+      background: '#1e293b',
+      color: '#f8fafc',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        form.submit();
+      }
+    });
+    return false;
+  }
+</script>
+
+<%- include('../partials/modals/historial-crear') %>
+
+<%- include('../partials/footer') %>

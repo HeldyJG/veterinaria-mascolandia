@@ -1,0 +1,223 @@
+<%- include('../partials/head', { title: title }) %>
+<%- include('../partials/sidebar') %>
+
+
+  <!-- Header de página -->
+  <div class="page-header">
+    <div class="page-header-left">
+      <h2 class="page-subtitle">Lista de citas programadas</h2>
+    </div>
+    <div class="page-header-right">
+      <button type="button" class="btn btn-primary" onclick="MascoModal.open('modal-crear-cita')">
+        <i data-lucide="calendar-plus"></i>
+        Nueva Cita
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <form method="GET" action="/citas" class="search-form">
+        <div class="input-group" style="flex-wrap: wrap; gap: 0.5rem;">
+          <input
+            type="text"
+            name="busqueda"
+            class="form-control"
+            placeholder="Buscar por mascota, cliente o servicio..."
+            value="<%= busqueda %>"
+            style="min-width: 200px; flex: 1;"
+          />
+          <select name="estado" class="form-control" style="max-width: 180px;">
+            <option value="">Todos los estados</option>
+            <option value="PENDIENTE"   <%= estado === 'PENDIENTE'   ? 'selected' : '' %>>Pendiente</option>
+            <option value="CONFIRMADA"  <%= estado === 'CONFIRMADA'  ? 'selected' : '' %>>Confirmada</option>
+            <option value="ATENDIDA"    <%= estado === 'ATENDIDA'    ? 'selected' : '' %>>Atendida</option>
+            <option value="CANCELADA"   <%= estado === 'CANCELADA'   ? 'selected' : '' %>>Cancelada</option>
+            <option value="EN_ESPERA"   <%= estado === 'EN_ESPERA'   ? 'selected' : '' %>>En Espera</option>
+          </select>
+          <input
+            type="date"
+            name="fecha"
+            class="form-control"
+            value="<%= fecha %>"
+            style="max-width: 180px;"
+          />
+          <button type="submit" class="btn btn-secondary">
+            <i data-lucide="search"></i>
+            Buscar
+          </button>
+          <% if (busqueda || estado || fecha) { %>
+            <a href="/citas" class="btn btn-outline">
+              <i data-lucide="x"></i>
+              Limpiar
+            </a>
+          <% } %>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Tabla de citas -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">
+        Citas
+        <span class="badge badge-info"><%= totalRegistros %> registros</span>
+      </span>
+    </div>
+    <div class="card-body p-0">
+      <% if (citas.length === 0) { %>
+        <div class="empty-state">
+          <i data-lucide="calendar-x"></i>
+          <p>No se encontraron citas<% if (busqueda || estado || fecha) { %> con los filtros aplicados<% } %>.</p>
+          <button type="button" class="btn btn-primary" onclick="MascoModal.open('modal-crear-cita')">Programar primera cita</button>
+        </div>
+      <% } else { %>
+        <div class="table-responsive">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Mascota</th>
+                <th>Cliente</th>
+                <th>Veterinario</th>
+                <th>Servicio</th>
+                <th>Fecha</th>
+                <th>Hora</th>
+                <th>Turno</th>
+                <th class="text-center">Estado</th>
+                <th class="text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% citas.forEach((cita, index) => { %>
+                <%
+                  let badgeClass = 'badge-secondary';
+                  if (cita.estado === 'PENDIENTE')  badgeClass = 'badge-warning';
+                  else if (cita.estado === 'CONFIRMADA') badgeClass = 'badge-info';
+                  else if (cita.estado === 'ATENDIDA')   badgeClass = 'badge-success';
+                  else if (cita.estado === 'CANCELADA')  badgeClass = 'badge-danger';
+                  else if (cita.estado === 'EN_ESPERA')  badgeClass = 'badge-secondary';
+                %>
+                <tr>
+                  <td><%= ((pagina - 1) * 20) + index + 1 %></td>
+                  <td class="fw-semibold">
+                    <%= cita.mascota ? cita.mascota.nombre : '—' %>
+                  </td>
+                  <td>
+                    <%= (cita.mascota && cita.mascota.cliente) ? cita.mascota.cliente.nombreCompleto : '—' %>
+                  </td>
+                  <td>
+                    <%= cita.usuario ? cita.usuario.nombre : '—' %>
+                  </td>
+                  <td>
+                    <%= cita.servicio ? cita.servicio.nombre : '—' %>
+                  </td>
+                  <td>
+                    <%
+                      // Parsear la fecha como local para evitar el desfase UTC
+                      let _fechaDisplay = '—';
+                      if (cita.fecha) {
+                        const _fp = String(cita.fecha).substring(0, 10).split('-');
+                        if (_fp.length === 3) {
+                          _fechaDisplay = new Date(Number(_fp[0]), Number(_fp[1]) - 1, Number(_fp[2]))
+                            .toLocaleDateString('es-PE');
+                        }
+                      }
+                    %>
+                    <%= _fechaDisplay %>
+                  </td>
+                  <td>
+                    <%= cita.hora ? cita.hora.substring(0, 5) : '—' %>
+                  </td>
+                  <td>
+                    <%= cita.turno === 'MANANA' ? 'Mañana' : (cita.turno === 'TARDE' ? 'Tarde' : '—') %>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge <%= badgeClass %>"><%= cita.estado %></span>
+                  </td>
+                  <td class="text-center">
+                    <div class="action-buttons">
+                      <button type="button" class="btn btn-sm btn-info" title="Ver detalle" onclick="MascoGestion.ver('cita', <%= cita.id %>)">
+                        <i data-lucide="eye"></i>
+                      </button>
+                      <button type="button" class="btn btn-sm btn-warning" title="Editar" onclick="MascoGestion.editar('cita', <%= cita.id %>)">
+                        <i data-lucide="pencil"></i>
+                      </button>
+                      <% if (cita.estado !== 'CANCELADA' && cita.estado !== 'ATENDIDA') { %>
+                        <form method="POST" action="/citas/<%= cita.id %>?_method=DELETE" style="display:inline;"
+                              onsubmit="return confirmarCancelar(event, '<%= cita.id %>')">
+                          <button type="submit" class="btn btn-sm btn-danger" title="Cancelar cita">
+                            <i data-lucide="x-circle"></i>
+                          </button>
+                        </form>
+                      <% } %>
+                    </div>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Paginación -->
+        <% if (totalPaginas > 1) { %>
+          <div class="pagination-wrapper">
+            <div class="pagination-info">
+              Página <%= pagina %> de <%= totalPaginas %> — <%= totalRegistros %> registros en total
+            </div>
+            <div class="pagination">
+              <% if (pagina > 1) { %>
+                <a href="/citas?pagina=<%= pagina - 1 %>&busqueda=<%= busqueda %>&estado=<%= estado %>&fecha=<%= fecha %>" class="page-link">
+                  <i data-lucide="chevron-left"></i>
+                </a>
+              <% } %>
+
+              <% for (let i = Math.max(1, pagina - 2); i <= Math.min(totalPaginas, pagina + 2); i++) { %>
+                <a href="/citas?pagina=<%= i %>&busqueda=<%= busqueda %>&estado=<%= estado %>&fecha=<%= fecha %>"
+                   class="page-link <%= i === pagina ? 'active' : '' %>">
+                  <%= i %>
+                </a>
+              <% } %>
+
+              <% if (pagina < totalPaginas) { %>
+                <a href="/citas?pagina=<%= pagina + 1 %>&busqueda=<%= busqueda %>&estado=<%= estado %>&fecha=<%= fecha %>" class="page-link">
+                  <i data-lucide="chevron-right"></i>
+                </a>
+              <% } %>
+            </div>
+          </div>
+        <% } %>
+      <% } %>
+    </div>
+  </div>
+
+
+<script>
+  function confirmarCancelar(event, id) {
+    event.preventDefault();
+    const form = event.target;
+    Swal.fire({
+      title: '¿Cancelar cita?',
+      text: `Se cancelará la cita #${id}. Esta acción no se puede deshacer.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Sí, cancelar',
+      cancelButtonText: 'No, volver',
+      background: '#1e293b',
+      color: '#f8fafc',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        form.submit();
+      }
+    });
+    return false;
+  }
+</script>
+
+<%- include('../partials/modals/cita-crear') %>
+
+<%- include('../partials/footer') %>

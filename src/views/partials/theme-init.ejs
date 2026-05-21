@@ -1,0 +1,8 @@
+<script>
+  (function () {
+    var k = 'mascolandia-theme';
+    var t = localStorage.getItem(k);
+    if (t !== 'light' && t !== 'dark') t = 'dark';
+    document.documentElement.setAttribute('data-theme', t);
+  })();
+</script>

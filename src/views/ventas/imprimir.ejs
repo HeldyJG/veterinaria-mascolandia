@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      color: #111;
+      background: #fff;
+      padding: 24px;
+      max-width: 420px;
+      margin: 0 auto;
+    }
+    .header { text-align: center; margin-bottom: 20px; border-bottom: 2px dashed #333; padding-bottom: 12px; }
+    .header h1 { font-size: 1.25rem; margin-bottom: 4px; }
+    .header p { font-size: 0.8rem; color: #555; }
+    .meta { font-size: 0.85rem; margin-bottom: 16px; }
+    .meta div { display: flex; justify-content: space-between; margin-bottom: 4px; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 16px; }
+    th, td { padding: 6px 4px; text-align: left; border-bottom: 1px solid #ddd; }
+    th { font-size: 0.75rem; text-transform: uppercase; color: #555; }
+    .text-right { text-align: right; }
+    .total { font-size: 1.1rem; font-weight: 700; display: flex; justify-content: space-between; border-top: 2px solid #111; padding-top: 10px; margin-top: 8px; }
+    .footer { text-align: center; font-size: 0.75rem; color: #666; margin-top: 20px; }
+    .anulada { color: #b91c1c; font-weight: bold; text-align: center; margin-bottom: 12px; }
+    @media print {
+      body { padding: 0; }
+      .no-print { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="no-print" style="margin-bottom: 16px; text-align: center;">
+    <button onclick="window.print()" style="padding: 8px 16px; cursor: pointer;">Imprimir</button>
+    <button onclick="window.close()" style="padding: 8px 16px; cursor: pointer; margin-left: 8px;">Cerrar</button>
+  </div>
+
+  <div class="header">
+    <h1>Mascolandia</h1>
+    <p>Sistema de Gestión Veterinaria</p>
+  </div>
+
+  <% if (venta.estado === 'ANULADA') { %>
+    <p class="anulada">*** COMPROBANTE ANULADO ***</p>
+  <% } %>
+
+  <div class="meta">
+    <div><span>Comprobante:</span><strong><%= venta.numeroComprobante || ('#' + venta.id) %></strong></div>
+    <div><span>Tipo:</span><span><%= venta.tipoComprobante %></span></div>
+    <div><span>Fecha:</span><span><%= venta.fechaVenta ? new Date(venta.fechaVenta).toLocaleString('es-PE') : '—' %></span></div>
+    <div><span>Cliente:</span><span><%= venta.cliente ? venta.cliente.nombreCompleto : 'Cliente general' %></span></div>
+    <div><span>Pago:</span><span><%= venta.metodoPago %></span></div>
+    <div><span>Vendedor:</span><span><%= venta.usuario ? venta.usuario.nombre : '—' %></span></div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Producto</th>
+        <th class="text-right">Cant.</th>
+        <th class="text-right">P.Unit</th>
+        <th class="text-right">Subt.</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% if (venta.detalles) { %>
+        <% venta.detalles.forEach(d => { %>
+          <tr>
+            <td><%= d.producto ? d.producto.nombre : ('Producto #' + d.idProducto) %></td>
+            <td class="text-right"><%= d.cantidad %></td>
+            <td class="text-right"><%= parseFloat(d.precioUnitario).toFixed(2) %></td>
+            <td class="text-right"><%= parseFloat(d.subtotal).toFixed(2) %></td>
+          </tr>
+        <% }) %>
+      <% } %>
+    </tbody>
+  </table>
+
+  <div class="total">
+    <span>TOTAL</span>
+    <span>S/. <%= parseFloat(venta.total).toFixed(2) %></span>
+  </div>
+
+  <p class="footer">Gracias por su preferencia</p>
+
+  <script>
+    window.addEventListener('load', function () {
+      if (window.location.search.includes('auto=1')) window.print();
+    });
+  </script>
+</body>
+</html>

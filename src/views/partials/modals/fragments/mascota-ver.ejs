@@ -1,0 +1,43 @@
+<%
+  const fn = mascota.fechaNacimiento ? new Date(mascota.fechaNacimiento).toLocaleDateString('es-PE') : '—';
+%>
+<div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1rem;">
+  <% if (mascota.foto) { %>
+    <img src="/uploads/fotos/<%= mascota.foto %>" alt="<%= mascota.nombre %>" style="width:100px;height:100px;object-fit:cover;border-radius:10px;border:1px solid var(--border-color);">
+  <% } %>
+  <div class="detail-grid" style="flex:1;min-width:220px;">
+    <div class="detail-item">
+      <span class="detail-label">Nombre</span>
+      <span class="detail-value fw-semibold"><%= mascota.nombre %></span>
+    </div>
+    <div class="detail-item">
+      <span class="detail-label">Cliente</span>
+      <span class="detail-value"><%= mascota.cliente ? mascota.cliente.nombreCompleto : '—' %></span>
+    </div>
+    <div class="detail-item">
+      <span class="detail-label">Especie / Raza</span>
+      <span class="detail-value">
+        <%= (mascota.raza && mascota.raza.especie) ? mascota.raza.especie.nombre + ' — ' : '' %><%= mascota.raza ? mascota.raza.nombre : '—' %>
+      </span>
+    </div>
+    <div class="detail-item">
+      <span class="detail-label">Sexo</span>
+      <span class="detail-value"><%= mascota.sexo === 'MACHO' ? 'Macho' : (mascota.sexo === 'HEMBRA' ? 'Hembra' : '—') %></span>
+    </div>
+    <div class="detail-item">
+      <span class="detail-label">Fecha nacimiento</span>
+      <span class="detail-value"><%= fn %></span>
+    </div>
+    <div class="detail-item">
+      <span class="detail-label">Peso / Color</span>
+      <span class="detail-value"><%= mascota.pesoActual ? mascota.pesoActual + ' kg' : '—' %> · <%= mascota.color || '—' %></span>
+    </div>
+  </div>
+</div>
+
+<div class="modal-fragment-footer">
+  <a href="/mascotas/<%= mascota.id %>" class="btn btn-sm btn-outline">Vista completa</a>
+  <button type="button" class="btn btn-sm btn-warning" onclick="MascoGestion.editar('mascota', <%= mascota.id %>)">
+    <i data-lucide="pencil"></i> Editar
+  </button>
+</div>

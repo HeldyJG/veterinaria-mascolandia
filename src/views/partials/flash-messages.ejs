@@ -1,0 +1,52 @@
+<% if (typeof mensajes !== 'undefined') { %>
+  <div class="flash-container" id="flash-container" aria-live="polite">
+    <% if (mensajes.success && mensajes.success.length > 0) { %>
+      <div class="flash-toast success" role="alert">
+        <i data-lucide="check-circle" class="flash-toast-icon"></i>
+        <div class="flash-toast-body">
+          <div class="flash-toast-title">Operación exitosa</div>
+          <div class="flash-toast-text"><%= mensajes.success %></div>
+        </div>
+        <button type="button" class="flash-toast-close" aria-label="Cerrar">
+          <i data-lucide="x" style="width:16px;height:16px;"></i>
+        </button>
+      </div>
+    <% } %>
+    <% if (mensajes.error && mensajes.error.length > 0) { %>
+      <div class="flash-toast error" role="alert">
+        <i data-lucide="alert-circle" class="flash-toast-icon"></i>
+        <div class="flash-toast-body">
+          <div class="flash-toast-title">Error</div>
+          <div class="flash-toast-text"><%= mensajes.error %></div>
+        </div>
+        <button type="button" class="flash-toast-close" aria-label="Cerrar">
+          <i data-lucide="x" style="width:16px;height:16px;"></i>
+        </button>
+      </div>
+    <% } %>
+    <% if (mensajes.warning && mensajes.warning.length > 0) { %>
+      <div class="flash-toast warning" role="alert">
+        <i data-lucide="alert-triangle" class="flash-toast-icon"></i>
+        <div class="flash-toast-body">
+          <div class="flash-toast-title">Advertencia</div>
+          <div class="flash-toast-text"><%= mensajes.warning %></div>
+        </div>
+        <button type="button" class="flash-toast-close" aria-label="Cerrar">
+          <i data-lucide="x" style="width:16px;height:16px;"></i>
+        </button>
+      </div>
+    <% } %>
+    <% if (mensajes.info && mensajes.info.length > 0) { %>
+      <div class="flash-toast info" role="alert">
+        <i data-lucide="info" class="flash-toast-icon"></i>
+        <div class="flash-toast-body">
+          <div class="flash-toast-title">Información</div>
+          <div class="flash-toast-text"><%= mensajes.info %></div>
+        </div>
+        <button type="button" class="flash-toast-close" aria-label="Cerrar">
+          <i data-lucide="x" style="width:16px;height:16px;"></i>
+        </button>
+      </div>
+    <% } %>
+  </div>
+<% } %>

@@ -1,0 +1,76 @@
+<%
+  let badgeClass = 'badge-secondary';
+  if (cita.estado === 'PENDIENTE') badgeClass = 'badge-warning';
+  else if (cita.estado === 'CONFIRMADA') badgeClass = 'badge-info';
+  else if (cita.estado === 'ATENDIDA') badgeClass = 'badge-success';
+  else if (cita.estado === 'CANCELADA') badgeClass = 'badge-danger';
+  const fechaStr = cita.fecha ? new Date(cita.fecha).toLocaleDateString('es-PE') : '—';
+%>
+<div class="detail-grid">
+  <div class="detail-item">
+    <span class="detail-label">Mascota</span>
+    <span class="detail-value fw-semibold"><%= cita.mascota ? cita.mascota.nombre : '—' %></span>
+  </div>
+  <div class="detail-item">
+    <span class="detail-label">Cliente</span>
+    <span class="detail-value"><%= (cita.mascota && cita.mascota.cliente) ? cita.mascota.cliente.nombreCompleto : '—' %></span>
+  </div>
+  <div class="detail-item">
+    <span class="detail-label">Veterinario</span>
+    <span class="detail-value"><%= cita.usuario ? cita.usuario.nombre : '—' %></span>
+  </div>
+  <div class="detail-item">
+    <span class="detail-label">Servicio</span>
+    <span class="detail-value"><%= cita.servicio ? cita.servicio.nombre : '—' %></span>
+  </div>
+  <div class="detail-item">
+    <span class="detail-label">Fecha / Hora</span>
+    <span class="detail-value"><%= fechaStr %> · <%= cita.hora ? cita.hora.substring(0, 5) : '—' %></span>
+  </div>
+  <div class="detail-item">
+    <span class="detail-label">Turno / Estado</span>
+    <span class="detail-value">
+      <%= cita.turno === 'MANANA' ? 'Mañana' : (cita.turno === 'TARDE' ? 'Tarde' : '—') %>
+      · <span class="badge <%= badgeClass %>"><%= cita.estado %></span>
+    </span>
+  </div>
+  <div class="detail-item" style="grid-column:1/-1;">
+    <span class="detail-label">Motivo</span>
+    <span class="detail-value"><%= cita.motivoDetalle || '—' %></span>
+  </div>
+</div>
+
+<% if (cita.estado !== 'CANCELADA' && cita.estado !== 'ATENDIDA') { %>
+  <div class="action-buttons" style="margin-top:1rem;flex-wrap:wrap;">
+    <% if (cita.estado === 'PENDIENTE') { %>
+      <form method="POST" action="/citas/<%= cita.id %>/confirmar?_method=PUT" style="display:inline;">
+        <input type="hidden" name="returnTo" value="list">
+        <button type="submit" class="btn btn-sm btn-info"><i data-lucide="check-circle"></i> Confirmar</button>
+      </form>
+    <% } %>
+    <% if (cita.estado === 'CONFIRMADA') { %>
+      <form method="POST" action="/citas/<%= cita.id %>/atender?_method=PUT" style="display:inline;">
+        <input type="hidden" name="returnTo" value="list">
+        <button type="submit" class="btn btn-sm btn-success"><i data-lucide="stethoscope"></i> Atender</button>
+      </form>
+    <% } %>
+    <form method="POST" action="/citas/<%= cita.id %>?_method=DELETE" style="display:inline;" onsubmit="return confirmarCancelarCitaModal(event, <%= cita.id %>)">
+      <input type="hidden" name="returnTo" value="list">
+      <button type="submit" class="btn btn-sm btn-danger"><i data-lucide="x-circle"></i> Cancelar</button>
+    </form>
+  </div>
+<% } %>
+<% if (cita.estado === 'ATENDIDA') { %>
+  <div style="margin-top:1rem;">
+    <a href="/historial-clinico?modal=modal-crear-historial&cita=<%= cita.id %>" class="btn btn-sm btn-primary">
+      <i data-lucide="file-plus"></i> Historial clínico
+    </a>
+  </div>
+<% } %>
+
+<div class="modal-fragment-footer">
+  <a href="/citas/<%= cita.id %>" class="btn btn-sm btn-outline">Vista completa</a>
+  <button type="button" class="btn btn-sm btn-warning" onclick="MascoGestion.editar('cita', <%= cita.id %>)">
+    <i data-lucide="pencil"></i> Editar
+  </button>
+</div>

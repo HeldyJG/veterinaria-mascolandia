@@ -1,0 +1,162 @@
+<%- include('../partials/head', { title: title }) %>
+<%- include('../partials/sidebar') %>
+
+
+  <div class="page-header">
+    <div class="page-header-left">
+      <nav class="breadcrumb">
+        <a href="/ventas" class="breadcrumb-link">Ventas</a>
+        <span class="breadcrumb-sep">/</span>
+        <span><%= venta.numeroComprobante || ('Venta #' + venta.id) %></span>
+      </nav>
+    </div>
+    <div class="page-header-right">
+      <a href="/ventas/<%= venta.id %>/imprimir" class="btn btn-secondary" target="_blank">
+        <i data-lucide="printer"></i>
+        Imprimir
+      </a>
+      <% if (venta.estado === 'COMPLETADA') { %>
+        <form id="form-anular-venta" action="/ventas/<%= venta.id %>/anular" method="POST" style="display: inline;">
+          <input type="hidden" name="_method" value="PUT">
+          <button type="button" class="btn btn-danger" onclick="confirmarAnularVenta()">
+            <i data-lucide="ban"></i>
+            Anular venta
+          </button>
+        </form>
+      <% } %>
+      <a href="/ventas" class="btn btn-outline">
+        <i data-lucide="arrow-left"></i>
+        Volver
+      </a>
+    </div>
+  </div>
+
+  <div class="card mb-4">
+    <div class="card-header">
+      <span class="card-title">
+        <i data-lucide="receipt"></i>
+        Información de la venta
+        <% if (venta.estado === 'ANULADA') { %>
+          <span class="badge badge-danger">Anulada</span>
+        <% } else { %>
+          <span class="badge badge-success">Completada</span>
+        <% } %>
+      </span>
+    </div>
+    <div class="card-body">
+      <div class="detail-grid">
+        <div class="detail-item">
+          <span class="detail-label">Comprobante</span>
+          <span class="detail-value fw-semibold"><%= venta.numeroComprobante || '—' %></span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Tipo</span>
+          <span class="detail-value"><%= venta.tipoComprobante %></span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Fecha</span>
+          <span class="detail-value">
+            <%= venta.fechaVenta ? new Date(venta.fechaVenta).toLocaleString('es-PE') : '—' %>
+          </span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Cliente</span>
+          <span class="detail-value">
+            <% if (venta.cliente) { %>
+              <a href="/clientes/<%= venta.cliente.id %>"><%= venta.cliente.nombreCompleto %></a>
+            <% } else { %>
+              Cliente general
+            <% } %>
+          </span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Vendedor</span>
+          <span class="detail-value"><%= venta.usuario ? venta.usuario.nombre : '—' %></span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Método de pago</span>
+          <span class="detail-value"><%= venta.metodoPago %></span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Total</span>
+          <span class="detail-value fw-semibold" style="color: var(--secondary); font-size: 1.25rem;">
+            S/. <%= parseFloat(venta.total).toFixed(2) %>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">
+        <i data-lucide="package"></i>
+        Productos vendidos
+        <span class="badge badge-info"><%= venta.detalles ? venta.detalles.length : 0 %></span>
+      </span>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th class="text-center">Cantidad</th>
+              <th class="text-end">Precio unit.</th>
+              <th class="text-end">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (venta.detalles && venta.detalles.length > 0) { %>
+              <% venta.detalles.forEach(d => { %>
+                <tr>
+                  <td>
+                    <% if (d.producto) { %>
+                      <a href="/productos/<%= d.producto.id %>"><%= d.producto.nombre %></a>
+                    <% } else { %>
+                      Producto #<%= d.idProducto %>
+                    <% } %>
+                  </td>
+                  <td class="text-center"><%= d.cantidad %></td>
+                  <td class="text-end">S/. <%= parseFloat(d.precioUnitario).toFixed(2) %></td>
+                  <td class="text-end fw-semibold">S/. <%= parseFloat(d.subtotal).toFixed(2) %></td>
+                </tr>
+              <% }) %>
+            <% } else { %>
+              <tr><td colspan="4" class="text-center text-muted">Sin detalle</td></tr>
+            <% } %>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="3" class="text-end fw-semibold">Total</td>
+              <td class="text-end fw-semibold">S/. <%= parseFloat(venta.total).toFixed(2) %></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+
+
+<script>
+  function confirmarAnularVenta() {
+    Swal.fire({
+      title: '¿Anular esta venta?',
+      text: 'Se marcará como anulada y se restaurará el stock de los productos.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#64748b',
+      confirmButtonText: 'Sí, anular',
+      cancelButtonText: 'Cancelar',
+      background: '#1e293b',
+      color: '#f8fafc',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        document.getElementById('form-anular-venta').submit();
+      }
+    });
+  }
+</script>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,165 @@
+<%- include('../partials/head', { title: title }) %>
+<%- include('../partials/sidebar') %>
+
+
+  <!-- Header de página -->
+  <div class="page-header">
+    <div class="page-header-left">
+      <h2 class="page-subtitle">Lista de servicios veterinarios activos</h2>
+    </div>
+    <div class="page-header-right">
+      <a href="/servicios/crear" class="btn btn-primary">
+        <i data-lucide="plus"></i>
+        Nuevo Servicio
+      </a>
+    </div>
+  </div>
+
+  <!-- Buscador -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <form method="GET" action="/servicios" class="search-form">
+        <div class="input-group">
+          <input
+            type="text"
+            name="busqueda"
+            class="form-control"
+            placeholder="Buscar por nombre o descripción..."
+            value="<%= busqueda %>"
+          />
+          <button type="submit" class="btn btn-secondary">
+            <i data-lucide="search"></i>
+            Buscar
+          </button>
+          <% if (busqueda) { %>
+            <a href="/servicios" class="btn btn-outline">
+              <i data-lucide="x"></i>
+              Limpiar
+            </a>
+          <% } %>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Tabla de servicios -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">
+        Servicios Veterinarios
+        <span class="badge badge-info"><%= totalRegistros %> registros</span>
+      </span>
+    </div>
+    <div class="card-body p-0">
+      <% if (servicios.length === 0) { %>
+        <div class="empty-state">
+          <i data-lucide="stethoscope"></i>
+          <p>No se encontraron servicios<% if (busqueda) { %> para "<%= busqueda %>"<% } %>.</p>
+          <a href="/servicios/crear" class="btn btn-primary">Registrar primer servicio</a>
+        </div>
+      <% } else { %>
+        <div class="table-responsive">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Nombre</th>
+                <th>Descripción</th>
+                <th class="text-center">Precio</th>
+                <th class="text-center">Citas</th>
+                <th class="text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% servicios.forEach((servicio, index) => { %>
+                <tr>
+                  <td><%= ((pagina - 1) * 20) + index + 1 %></td>
+                  <td>
+                    <span class="fw-semibold"><%= servicio.nombre %></span>
+                  </td>
+                  <td class="text-truncate" style="max-width: 250px;" title="<%= servicio.descripcion || '' %>">
+                    <%= servicio.descripcion || '—' %>
+                  </td>
+                  <td class="text-center">
+                    <span class="fw-semibold">S/. <%= parseFloat(servicio.precio).toFixed(2) %></span>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge badge-info"><%= servicio.totalCitas %></span>
+                  </td>
+                  <td class="text-center">
+                    <div class="action-buttons">
+                      <a href="/servicios/<%= servicio.id %>/editar" class="btn btn-sm btn-warning" title="Editar">
+                        <i data-lucide="pencil"></i>
+                      </a>
+                      <form method="POST" action="/servicios/<%= servicio.id %>?_method=DELETE" style="display:inline;"
+                            onsubmit="return confirmarEliminar(event, '<%= servicio.nombre %>')">
+                        <button type="submit" class="btn btn-sm btn-danger" title="Eliminar">
+                          <i data-lucide="trash-2"></i>
+                        </button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Paginación -->
+        <% if (totalPaginas > 1) { %>
+          <div class="pagination-wrapper">
+            <div class="pagination-info">
+              Página <%= pagina %> de <%= totalPaginas %> — <%= totalRegistros %> registros en total
+            </div>
+            <div class="pagination">
+              <% if (pagina > 1) { %>
+                <a href="/servicios?pagina=<%= pagina - 1 %>&busqueda=<%= busqueda %>" class="page-link">
+                  <i data-lucide="chevron-left"></i>
+                </a>
+              <% } %>
+
+              <% for (let i = Math.max(1, pagina - 2); i <= Math.min(totalPaginas, pagina + 2); i++) { %>
+                <a href="/servicios?pagina=<%= i %>&busqueda=<%= busqueda %>"
+                   class="page-link <%= i === pagina ? 'active' : '' %>">
+                  <%= i %>
+                </a>
+              <% } %>
+
+              <% if (pagina < totalPaginas) { %>
+                <a href="/servicios?pagina=<%= pagina + 1 %>&busqueda=<%= busqueda %>" class="page-link">
+                  <i data-lucide="chevron-right"></i>
+                </a>
+              <% } %>
+            </div>
+          </div>
+        <% } %>
+      <% } %>
+    </div>
+  </div>
+
+
+<script>
+  function confirmarEliminar(event, nombre) {
+    event.preventDefault();
+    const form = event.target;
+    Swal.fire({
+      title: '¿Eliminar servicio?',
+      text: `Se eliminará "${nombre}". No se puede deshacer si no tiene citas activas.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+      background: '#1e293b',
+      color: '#f8fafc',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        form.submit();
+      }
+    });
+    return false;
+  }
+</script>
+
+<%- include('../partials/footer') %>

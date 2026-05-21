@@ -1,0 +1,61 @@
+<%- include('../partials/head', { title: title }) %>
+  <%- include('../partials/sidebar') %>
+
+  <div class="card-premium">
+    <div class="card-premium-header">
+      <div class="card-premium-title">
+        <i data-lucide="shield" style="width:20px; height:20px; margin-right:0.5rem; vertical-align:middle;"></i>
+        Perfiles y permisos de acceso
+      </div>
+    </div>
+
+    <p style="color: var(--text-muted); margin-bottom: 1.25rem; font-size: 0.95rem;">
+      Cada perfil define qué módulos del menú puede ver y usar un usuario. Seleccione un perfil para asignar o quitar permisos.
+    </p>
+
+    <div class="table-responsive">
+      <table class="table-premium">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Perfil</th>
+            <th>Descripción</th>
+            <th>Usuarios activos</th>
+            <th>Opciones asignadas</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (perfiles && perfiles.length > 0) { %>
+            <% perfiles.forEach((p, i) => { %>
+              <tr>
+                <td><%= i + 1 %></td>
+                <td style="font-weight: 600; color: var(--primary);"><%= p.nombre %></td>
+                <td style="color: var(--text-muted);"><%= p.descripcion || '—' %></td>
+                <td>
+                  <span class="badge-premium badge-primary"><%= p.totalUsuarios %></span>
+                </td>
+                <td>
+                  <span class="badge-premium badge-success"><%= p.totalOpciones %></span>
+                </td>
+                <td>
+                  <a href="/perfiles/<%= p.id %>/permisos" class="btn-premium-sm primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;">
+                    <i data-lucide="key" style="width: 14px; height: 14px;"></i>
+                    Gestionar permisos
+                  </a>
+                </td>
+              </tr>
+            <% }) %>
+          <% } else { %>
+            <tr>
+              <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                No hay perfiles activos registrados.
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <%- include('../partials/footer') %>

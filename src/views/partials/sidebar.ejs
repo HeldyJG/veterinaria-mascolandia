@@ -1,0 +1,101 @@
+<div class="app-wrapper">
+<div class="app-sidebar" id="app-sidebar">
+  <!-- Brand logo -->
+  <div class="sidebar-brand">
+    <a href="/dashboard" class="brand-text">
+      Masco<span>landia</span>
+    </a>
+  </div>
+
+  <!-- User info / Profile -->
+  <% if (usuario) { %>
+    <div class="sidebar-profile">
+      <div class="profile-avatar">
+        <%= usuario.nombre ? usuario.nombre.charAt(0).toUpperCase() : 'U' %>
+      </div>
+      <div class="profile-info">
+        <div class="profile-name" title="<%= usuario.nombre %>"><%= usuario.nombre %></div>
+        <div class="profile-role"><%= usuario.perfilNombre %></div>
+      </div>
+    </div>
+  <% } %>
+
+  <!-- Navigation menu -->
+  <div class="sidebar-menu" id="sidebar-menu">
+    <a href="/dashboard" class="menu-link <%= typeof activePage !== 'undefined' && activePage === 'dashboard' ? 'active' : '' %>">
+      <i data-lucide="home"></i>
+      <span>Dashboard</span>
+    </a>
+
+    <% if (typeof menu !== 'undefined' && menu.length > 0) { %>
+      <% menu.forEach(grupo => { %>
+        <% const enlaces = (grupo.subopciones || []).filter(opc => opc.ruta && !String(opc.ruta).startsWith('#')) %>
+        <% if (grupo.nombre !== 'Dashboard' && enlaces.length > 0) { %>
+          <div class="menu-title"><%= grupo.nombre %></div>
+          <% enlaces.forEach(opc => { %>
+            <a href="<%= opc.ruta %>" class="menu-link <%= typeof activePage !== 'undefined' && activePage === opc.ruta ? 'active' : '' %>">
+              <% if (opc.icono) { %>
+                <i data-lucide="<%= opc.icono %>"></i>
+              <% } else { %>
+                <i data-lucide="circle"></i>
+              <% } %>
+              <span><%= opc.nombre %></span>
+            </a>
+          <% }) %>
+        <% } %>
+      <% }) %>
+    <% } else { %>
+      <div class="menu-title">Módulos</div>
+      <a href="/clientes" class="menu-link">
+        <i data-lucide="users"></i>
+        <span>Clientes</span>
+      </a>
+      <a href="/mascotas" class="menu-link">
+        <i data-lucide="heart"></i>
+        <span>Mascotas</span>
+      </a>
+      <a href="/citas" class="menu-link">
+        <i data-lucide="calendar"></i>
+        <span>Citas</span>
+      </a>
+      <a href="/historial-clinico" class="menu-link">
+        <i data-lucide="clipboard-list"></i>
+        <span>Historial Clínico</span>
+      </a>
+      <a href="/ventas" class="menu-link">
+        <i data-lucide="dollar-sign"></i>
+        <span>Ventas</span>
+      </a>
+      <a href="/ventas?modal=modal-crear-venta" class="menu-link">
+        <i data-lucide="shopping-cart"></i>
+        <span>Nueva Venta</span>
+      </a>
+    <% } %>
+  </div>
+</div>
+
+<div class="app-content">
+  <!-- Top Navbar -->
+  <nav class="app-navbar">
+    <button type="button" class="sidebar-toggle" id="sidebar-toggle" aria-label="Abrir menú">
+      <i data-lucide="menu"></i>
+    </button>
+    <div class="navbar-title">
+      <h1><%= typeof pageTitle !== 'undefined' ? pageTitle : 'Panel de Control' %></h1>
+    </div>
+    <div class="navbar-actions">
+      <button type="button" class="theme-toggle" data-theme-toggle aria-pressed="false" title="Cambiar tema">
+        <i data-theme-icon data-lucide="sun"></i>
+        <span class="theme-toggle-label" data-theme-label>Claro</span>
+      </button>
+      <% if (usuario) { %>
+        <a href="/auth/logout" class="logout-btn">
+          <i data-lucide="log-out"></i>
+          <span>Cerrar Sesión</span>
+        </a>
+      <% } %>
+    </div>
+  </nav>
+  
+  <div class="page-container">
+    <!-- Contenido dinámico va aquí -->

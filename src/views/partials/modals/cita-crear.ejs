@@ -1,0 +1,172 @@
+<%- include('../modal-start', { modalId: 'modal-crear-cita', modalTitle: 'Programar cita', modalIcon: 'calendar-plus', modalSize: 'modal-lg' }) %>
+<% const oldValues = typeof old !== 'undefined' ? old : {}; %>
+<%
+  // Calcular fecha de hoy en zona local (YYYY-MM-DD) sin conversión UTC
+  const _now = new Date();
+  const _y = _now.getFullYear();
+  const _m = String(_now.getMonth() + 1).padStart(2, '0');
+  const _d = String(_now.getDate()).padStart(2, '0');
+  const todayLocal = `${_y}-${_m}-${_d}`;
+%>
+<form id="form-crear-cita" method="POST" action="/citas" novalidate>
+  <!-- Zona de error dentro del modal -->
+  <div id="cita-modal-error" class="alert alert-danger mb-4" role="alert"
+       style="display:none; padding:0.9rem 1rem; border-radius:0.5rem; border:1px solid rgba(239,68,68,0.4); background:rgba(239,68,68,0.12); color:#991b1b;">
+    <strong>Error:</strong> <span id="cita-modal-error-msg"></span>
+  </div>
+
+  <div class="form-group">
+    <label for="modal-cita-mascota" class="form-label">Mascota <span class="text-danger">*</span></label>
+    <select id="modal-cita-mascota" name="idMascota" class="form-control" required>
+      <option value="">— Seleccione —</option>
+      <% (mascotas || []).forEach(m => { %>
+        <option value="<%= m.id %>" <%= String(oldValues.idMascota) === String(m.id) ? 'selected' : '' %>>
+          <%= m.nombre %><% if (m.cliente) { %> — <%= m.cliente.nombreCompleto %><% } %>
+        </option>
+      <% }) %>
+    </select>
+  </div>
+  <div class="form-row-2">
+    <div class="form-group">
+      <label for="modal-cita-vet" class="form-label">Veterinario <span class="text-danger">*</span></label>
+      <select id="modal-cita-vet" name="idUsuario" class="form-control" required>
+        <option value="">— Seleccione —</option>
+        <% (usuarios || []).forEach(u => { %>
+          <option value="<%= u.id %>" <%= String(oldValues.idUsuario) === String(u.id) ? 'selected' : '' %>><%= u.nombre %></option>
+        <% }) %>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="modal-cita-servicio" class="form-label">Servicio <span class="text-danger">*</span></label>
+      <select id="modal-cita-servicio" name="idServicio" class="form-control" required>
+        <option value="">— Seleccione —</option>
+        <% (servicios || []).forEach(s => { %>
+          <option value="<%= s.id %>" <%= String(oldValues.idServicio) === String(s.id) ? 'selected' : '' %>><%= s.nombre %></option>
+        <% }) %>
+      </select>
+    </div>
+  </div>
+  <div class="form-row-2">
+    <div class="form-group">
+      <label for="modal-cita-fecha" class="form-label">Fecha <span class="text-danger">*</span></label>
+      <input type="date" id="modal-cita-fecha" name="fecha" class="form-control"
+             min="<%= todayLocal %>"
+             value="<%= oldValues.fecha || todayLocal %>" required>
+    </div>
+    <div class="form-group">
+      <label for="modal-cita-hora" class="form-label">Hora <span class="text-danger">*</span></label>
+      <input type="time" id="modal-cita-hora" name="hora" class="form-control"
+             value="<%= oldValues.hora || '' %>" required>
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="modal-cita-turno" class="form-label">Turno <span class="text-danger">*</span></label>
+    <select id="modal-cita-turno" name="turno" class="form-control" required>
+      <option value="">— Seleccione —</option>
+      <option value="MANANA" <%= oldValues.turno === 'MANANA' ? 'selected' : '' %>>Mañana</option>
+      <option value="TARDE"  <%= oldValues.turno === 'TARDE'  ? 'selected' : '' %>>Tarde</option>
+    </select>
+  </div>
+  <div class="form-group">
+    <label for="modal-cita-motivo" class="form-label">Motivo / detalle</label>
+    <textarea id="modal-cita-motivo" name="motivoDetalle" class="form-control" rows="2" maxlength="500"><%= oldValues.motivoDetalle || '' %></textarea>
+  </div>
+  <div class="form-actions">
+    <button type="button" class="btn btn-outline" data-modal-close="modal-crear-cita">Cancelar</button>
+    <button type="submit" id="btn-submit-cita" class="btn btn-primary">
+      <i data-lucide="save"></i> Programar
+    </button>
+  </div>
+</form>
+<%- include('../modal-end') %>
+
+<script>
+(function () {
+  'use strict';
+
+  function initFormCita() {
+    const form = document.getElementById('form-crear-cita');
+    if (!form || form.dataset.ajaxBound) return;
+    form.dataset.ajaxBound = '1';
+
+    const errorBox = document.getElementById('cita-modal-error');
+    const errorMsg = document.getElementById('cita-modal-error-msg');
+    const submitBtn = document.getElementById('btn-submit-cita');
+
+    function showError(msg) {
+      errorMsg.textContent = msg;
+      errorBox.style.display = '';
+      errorBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function hideError() {
+      errorBox.style.display = 'none';
+      errorMsg.textContent = '';
+    }
+
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      hideError();
+
+      submitBtn.disabled = true;
+      const originalHtml = submitBtn.innerHTML;
+      submitBtn.innerHTML = '<i data-lucide="loader-2" style="animation:spin 1s linear infinite;"></i> Guardando…';
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+
+      try {
+        const data = new FormData(form);
+        const body = new URLSearchParams(data);
+
+        const res = await fetch(form.action, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+          credentials: 'same-origin',
+          body: body.toString(),
+        });
+
+        const json = await res.json();
+
+        if (json.success) {
+          // Cerrar modal y recargar la tabla
+          if (window.MascoModal) MascoModal.close('modal-crear-cita');
+          // Mostrar toast de éxito si hay Swal disponible, si no recargar
+          if (typeof Swal !== 'undefined') {
+            Swal.fire({
+              icon: 'success',
+              title: 'Cita programada',
+              text: json.message || 'La cita fue registrada correctamente.',
+              timer: 2000,
+              showConfirmButton: false,
+              background: '#1e293b',
+              color: '#f8fafc',
+            }).then(() => window.location.reload());
+          } else {
+            window.location.reload();
+          }
+        } else {
+          const errores = json.errors || ['Error desconocido.'];
+          showError(errores[0]);
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = originalHtml;
+          if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+      } catch (err) {
+        showError('Error de conexión. Intente nuevamente.');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalHtml;
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+      }
+    });
+  }
+
+  // Inicializar cuando el DOM esté listo
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initFormCita);
+  } else {
+    initFormCita();
+  }
+})();
+</script>

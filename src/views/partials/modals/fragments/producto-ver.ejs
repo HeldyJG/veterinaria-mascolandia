@@ -1,0 +1,48 @@
+<%
+  let stockBadge = 'badge-success';
+  let stockLabel = 'Stock OK';
+  if (producto.estadoStock === 'SIN_STOCK') { stockBadge = 'badge-danger'; stockLabel = 'Sin stock'; }
+  else if (producto.estadoStock === 'STOCK_BAJO') { stockBadge = 'badge-warning'; stockLabel = 'Stock bajo'; }
+%>
+<div class="detail-grid">
+  <div class="detail-item">
+    <span class="detail-label">Nombre</span>
+    <span class="detail-value fw-semibold"><%= producto.nombre %></span>
+  </div>
+  <div class="detail-item">
+    <span class="detail-label">Código</span>
+    <span class="detail-value"><code><%= producto.codigoBarras || '—' %></code></span>
+  </div>
+  <div class="detail-item">
+    <span class="detail-label">Categoría</span>
+    <span class="detail-value"><%= producto.categoria ? producto.categoria.nombre : '—' %></span>
+  </div>
+  <div class="detail-item">
+    <span class="detail-label">Proveedor</span>
+    <span class="detail-value"><%= producto.proveedor ? producto.proveedor.nombreEmpresa : '—' %></span>
+  </div>
+  <div class="detail-item">
+    <span class="detail-label">Precio compra / venta</span>
+    <span class="detail-value">S/. <%= parseFloat(producto.precioCompra).toFixed(2) %> · S/. <%= parseFloat(producto.precioVenta).toFixed(2) %></span>
+  </div>
+  <div class="detail-item">
+    <span class="detail-label">Stock</span>
+    <span class="detail-value">
+      <span class="badge <%= stockBadge %>"><%= producto.stockActual %> u. — <%= stockLabel %></span>
+      (mín. <%= producto.stockMinimo %>)
+    </span>
+  </div>
+  <% if (producto.descripcion) { %>
+    <div class="detail-item" style="grid-column:1/-1;">
+      <span class="detail-label">Descripción</span>
+      <span class="detail-value"><%= producto.descripcion %></span>
+    </div>
+  <% } %>
+</div>
+
+<div class="modal-fragment-footer">
+  <a href="/productos/<%= producto.id %>" class="btn btn-sm btn-outline">Vista completa</a>
+  <button type="button" class="btn btn-sm btn-warning" onclick="MascoGestion.editar('producto', <%= producto.id %>)">
+    <i data-lucide="pencil"></i> Editar
+  </button>
+</div>

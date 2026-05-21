@@ -1,0 +1,70 @@
+<%- include('../modal-start', { modalId: 'modal-crear-historial', modalTitle: 'Nuevo historial clínico', modalIcon: 'file-plus', modalSize: 'modal-xl' }) %>
+<form method="POST" action="/historial-clinico" novalidate>
+  <% if (typeof idCita !== 'undefined' && idCita) { %>
+    <input type="hidden" name="idCita" value="<%= idCita %>">
+  <% } %>
+  <div class="form-row-2">
+    <div class="form-group">
+      <label for="modal-hist-mascota" class="form-label">Mascota <span class="text-danger">*</span></label>
+      <% if (typeof citaModal !== 'undefined' && citaModal && citaModal.mascota) { %>
+        <input type="hidden" name="idMascota" value="<%= citaModal.mascota.id %>">
+        <input type="text" class="form-control" disabled
+          value="<%= citaModal.mascota.nombre %><% if (citaModal.mascota.cliente) { %> — <%= citaModal.mascota.cliente.nombreCompleto %><% } %>">
+        <small class="form-hint">Mascota vinculada a la cita #<%= citaModal.id %>.</small>
+      <% } else { %>
+        <select id="modal-hist-mascota" name="idMascota" class="form-control" required>
+          <option value="">— Seleccionar —</option>
+          <% (mascotas || []).forEach(m => { %>
+            <option value="<%= m.id %>">
+              <%= m.nombre %><% if (m.cliente) { %> — <%= m.cliente.nombreCompleto %><% } %>
+            </option>
+          <% }) %>
+        </select>
+      <% } %>
+    </div>
+    <div class="form-group">
+      <label for="modal-hist-vet" class="form-label">Veterinario <span class="text-danger">*</span></label>
+      <select id="modal-hist-vet" name="idUsuario" class="form-control" required>
+        <option value="">— Seleccionar —</option>
+        <% (usuarios || []).forEach(u => { %>
+          <option value="<%= u.id %>"><%= u.nombre %></option>
+        <% }) %>
+      </select>
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="modal-hist-motivo" class="form-label">Motivo de consulta</label>
+    <input type="text" id="modal-hist-motivo" name="motivoConsulta" class="form-control" maxlength="255">
+  </div>
+  <div class="form-group">
+    <label for="modal-hist-sintomas" class="form-label">Síntomas</label>
+    <textarea id="modal-hist-sintomas" name="sintomas" class="form-control" rows="2"></textarea>
+  </div>
+  <div class="form-row-2">
+    <div class="form-group">
+      <label for="modal-hist-peso" class="form-label">Peso (kg)</label>
+      <input type="number" id="modal-hist-peso" name="peso" class="form-control" step="0.01" min="0">
+    </div>
+    <div class="form-group">
+      <label for="modal-hist-temp" class="form-label">Temperatura (°C)</label>
+      <input type="number" id="modal-hist-temp" name="temperatura" class="form-control" step="0.1" min="0">
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="modal-hist-diagnostico" class="form-label">Diagnóstico</label>
+    <textarea id="modal-hist-diagnostico" name="diagnostico" class="form-control" rows="2"></textarea>
+  </div>
+  <div class="form-group">
+    <label for="modal-hist-tratamiento" class="form-label">Tratamiento</label>
+    <textarea id="modal-hist-tratamiento" name="tratamiento" class="form-control" rows="2"></textarea>
+  </div>
+  <div class="form-group">
+    <label for="modal-hist-obs" class="form-label">Observaciones</label>
+    <textarea id="modal-hist-obs" name="observaciones" class="form-control" rows="2"></textarea>
+  </div>
+  <div class="form-actions">
+    <button type="button" class="btn btn-outline" data-modal-close="modal-crear-historial">Cancelar</button>
+    <button type="submit" class="btn btn-primary"><i data-lucide="save"></i> Registrar</button>
+  </div>
+</form>
+<%- include('../modal-end') %>

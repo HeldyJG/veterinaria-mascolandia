@@ -1,0 +1,456 @@
+<%- include('../partials/head', { title: title }) %>
+<%- include('../partials/sidebar') %>
+
+
+  <!-- Breadcrumb -->
+  <div class="page-header">
+    <div class="page-header-left">
+      <nav class="breadcrumb">
+        <a href="/historial-clinico" class="breadcrumb-link">Historial Clínico</a>
+        <span class="breadcrumb-sep">/</span>
+        <span>Registro #<%= historial.id %></span>
+      </nav>
+    </div>
+    <div class="page-header-right">
+      <% if (typeof puedeEditar !== 'undefined' && puedeEditar) { %>
+        <a href="/historial-clinico/<%= historial.id %>/editar" class="btn btn-warning">
+          <i data-lucide="pencil"></i>
+          Editar
+        </a>
+      <% } else { %>
+        <span class="btn btn-outline" style="opacity:0.6; cursor:not-allowed;" title="Edición permitida solo durante las primeras 24 horas">
+          <i data-lucide="lock"></i>
+          Edición cerrada
+        </span>
+      <% } %>
+      <a href="/historial-clinico" class="btn btn-outline">
+        <i data-lucide="arrow-left"></i>
+        Volver
+      </a>
+    </div>
+  </div>
+
+  <!-- Datos generales -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <span class="card-title">
+        <i data-lucide="clipboard-list"></i>
+        Información General
+      </span>
+    </div>
+    <div class="card-body">
+      <div class="detail-grid">
+
+        <div class="detail-item">
+          <span class="detail-label">Mascota</span>
+          <span class="detail-value fw-semibold">
+            <% if (historial.mascota) { %>
+              <a href="/mascotas/<%= historial.mascota.id %>">
+                <%= historial.mascota.nombre %>
+                <% if (historial.mascota.raza) { %>
+                  <small class="text-muted">(<%=historial.mascota.raza.nombre %>)</small>
+                <% } %>
+              </a>
+            <% } else { %>
+              —
+            <% } %>
+          </span>
+        </div>
+
+        <div class="detail-item">
+          <span class="detail-label">Cliente / Propietario</span>
+          <span class="detail-value">
+            <% if (historial.mascota && historial.mascota.cliente) { %>
+              <a href="/clientes/<%= historial.mascota.cliente.id %>">
+                <%= historial.mascota.cliente.nombreCompleto %>
+              </a>
+            <% } else { %>
+              —
+            <% } %>
+          </span>
+        </div>
+
+        <div class="detail-item">
+          <span class="detail-label">Veterinario</span>
+          <span class="detail-value">
+            <%= historial.usuario ? historial.usuario.nombre : '—' %>
+          </span>
+        </div>
+
+        <div class="detail-item">
+          <span class="detail-label">Fecha de Registro</span>
+          <span class="detail-value">
+            <%= historial.fechaRegistro ? new Date(historial.fechaRegistro).toLocaleDateString('es-PE') : '—' %>
+          </span>
+        </div>
+
+        <% if (historial.cita) { %>
+          <div class="detail-item">
+            <span class="detail-label">Cita Asociada</span>
+            <span class="detail-value">
+              <a href="/citas/<%= historial.cita.id %>">
+                Cita #<%= historial.cita.id %>
+                <% if (historial.cita.servicio) { %> — <%= historial.cita.servicio.nombre %><% } %>
+              </a>
+            </span>
+          </div>
+        <% } %>
+
+        <% if (historial.peso !== null && historial.peso !== undefined) { %>
+          <div class="detail-item">
+            <span class="detail-label">Peso</span>
+            <span class="detail-value fw-semibold">
+              <%= parseFloat(historial.peso).toFixed(2) %> kg
+            </span>
+          </div>
+        <% } %>
+
+        <% if (historial.temperatura !== null && historial.temperatura !== undefined) { %>
+          <div class="detail-item">
+            <span class="detail-label">Temperatura</span>
+            <span class="detail-value fw-semibold">
+              <%= parseFloat(historial.temperatura).toFixed(1) %> °C
+            </span>
+          </div>
+        <% } %>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Secciones clínicas -->
+  <div class="grid-2 mb-4">
+
+    <!-- Motivo de Consulta -->
+    <% if (historial.motivoConsulta) { %>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">
+            <i data-lucide="help-circle"></i>
+            Motivo de Consulta
+          </span>
+        </div>
+        <div class="card-body">
+          <p style="margin: 0; line-height: 1.6;"><%= historial.motivoConsulta %></p>
+        </div>
+      </div>
+    <% } %>
+
+    <!-- Síntomas -->
+    <% if (historial.sintomas) { %>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">
+            <i data-lucide="activity"></i>
+            Síntomas
+          </span>
+        </div>
+        <div class="card-body">
+          <p style="margin: 0; line-height: 1.6; white-space: pre-wrap;"><%= historial.sintomas %></p>
+        </div>
+      </div>
+    <% } %>
+
+    <!-- Diagnóstico -->
+    <% if (historial.diagnostico) { %>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">
+            <i data-lucide="stethoscope"></i>
+            Diagnóstico
+          </span>
+        </div>
+        <div class="card-body">
+          <p style="margin: 0; line-height: 1.6; white-space: pre-wrap;"><%= historial.diagnostico %></p>
+        </div>
+      </div>
+    <% } %>
+
+    <!-- Tratamiento -->
+    <% if (historial.tratamiento) { %>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">
+            <i data-lucide="pill"></i>
+            Tratamiento
+          </span>
+        </div>
+        <div class="card-body">
+          <p style="margin: 0; line-height: 1.6; white-space: pre-wrap;"><%= historial.tratamiento %></p>
+        </div>
+      </div>
+    <% } %>
+
+  </div>
+
+  <!-- Observaciones -->
+  <% if (historial.observaciones) { %>
+    <div class="card mb-4">
+      <div class="card-header">
+        <span class="card-title">
+          <i data-lucide="message-square"></i>
+          Observaciones
+        </span>
+      </div>
+      <div class="card-body">
+        <p style="margin: 0; line-height: 1.6; white-space: pre-wrap;"><%= historial.observaciones %></p>
+      </div>
+    </div>
+  <% } %>
+
+  <!-- Exámenes de laboratorio -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <span class="card-title">
+        <i data-lucide="flask-conical"></i>
+        Exámenes de Laboratorio
+        <% if (historial.examenes && historial.examenes.length > 0) { %>
+          <span class="badge badge-info"><%= historial.examenes.length %></span>
+        <% } %>
+      </span>
+    </div>
+    <div class="card-body">
+      <form
+        action="/historial-clinico/<%= historial.id %>/examenes"
+        method="POST"
+        enctype="multipart/form-data"
+        class="mb-4"
+        style="padding: 1rem; border: 1px dashed var(--border-color); border-radius: var(--radius-md); background: rgba(255,255,255,0.02);"
+      >
+        <input type="hidden" name="idHistorial" value="<%= historial.id %>">
+        <p class="text-muted" style="font-size: 0.875rem; margin-bottom: 1rem;">
+          Adjunte resultados en PDF o imagen (máx. 10 MB).
+        </p>
+        <div class="detail-grid" style="margin-bottom: 1rem;">
+          <div class="form-group">
+            <label class="form-label" for="tipoExamen">Tipo de examen <span class="text-danger">*</span></label>
+            <input
+              type="text"
+              id="tipoExamen"
+              name="tipoExamen"
+              class="form-control"
+              maxlength="100"
+              placeholder="Ej. Hemograma, Radiografía, Parásitos"
+              required
+            >
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="fechaExamen">Fecha del examen</label>
+            <input type="date" id="fechaExamen" name="fechaExamen" class="form-control">
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label class="form-label" for="descripcion">Descripción</label>
+          <textarea
+            id="descripcion"
+            name="descripcion"
+            class="form-control"
+            rows="2"
+            maxlength="1000"
+            placeholder="Notas o indicaciones del examen"
+          ></textarea>
+        </div>
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label class="form-label" for="resultado">Resultado (texto)</label>
+          <textarea
+            id="resultado"
+            name="resultado"
+            class="form-control"
+            rows="2"
+            placeholder="Resumen del resultado, si aplica"
+          ></textarea>
+        </div>
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label class="form-label" for="archivo">Archivo adjunto <span class="text-danger">*</span></label>
+          <input
+            type="file"
+            id="archivo"
+            name="archivo"
+            class="form-control"
+            accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
+            required
+          >
+        </div>
+        <button type="submit" class="btn btn-primary">
+          <i data-lucide="upload"></i>
+          Subir examen
+        </button>
+      </form>
+
+      <% if (historial.examenes && historial.examenes.length > 0) { %>
+        <div class="table-responsive">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Tipo</th>
+                <th>Fecha</th>
+                <th>Archivo</th>
+                <th class="text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% historial.examenes.forEach(examen => { %>
+                <% 
+                  const nombreArchivo = examen.nombreArchivo || examen.archivo || '';
+                  const ext = nombreArchivo.split('.').pop().toLowerCase();
+                  const esPdf = ext === 'pdf';
+                  const fechaExamenTxt = examen.fechaExamen
+                    ? new Date(examen.fechaExamen + 'T12:00:00').toLocaleDateString('es-PE')
+                    : (examen.fechaRegistro ? new Date(examen.fechaRegistro).toLocaleDateString('es-PE') : '—');
+                %>
+                <tr>
+                  <td>
+                    <div class="fw-semibold"><%= examen.tipoExamen %></div>
+                    <% if (examen.descripcion) { %>
+                      <small class="text-muted text-truncate d-block" style="max-width: 220px;" title="<%= examen.descripcion %>">
+                        <%= examen.descripcion.length > 60 ? examen.descripcion.substring(0, 60) + '…' : examen.descripcion %>
+                      </small>
+                    <% } %>
+                    <% if (examen.resultado) { %>
+                      <small class="text-muted d-block" style="max-width: 220px;">
+                        Resultado: <%= examen.resultado.length > 50 ? examen.resultado.substring(0, 50) + '…' : examen.resultado %>
+                      </small>
+                    <% } %>
+                  </td>
+                  <td style="white-space: nowrap;"><%= fechaExamenTxt %></td>
+                  <td>
+                    <% if (examen.archivo) { %>
+                      <span class="badge <%= esPdf ? 'badge-warning' : 'badge-info' %>" style="display: inline-flex; align-items: center; gap: 0.35rem;">
+                        <i data-lucide="<%= esPdf ? 'file-text' : 'image' %>" style="width: 14px; height: 14px;"></i>
+                        <%= esPdf ? 'PDF' : 'Imagen' %>
+                      </span>
+                      <small class="text-muted d-block" style="max-width: 180px;" title="<%= nombreArchivo %>">
+                        <%= nombreArchivo.length > 28 ? nombreArchivo.substring(0, 28) + '…' : nombreArchivo %>
+                      </small>
+                    <% } else { %>
+                      <span class="text-muted">Sin archivo</span>
+                    <% } %>
+                  </td>
+                  <td class="text-center" style="white-space: nowrap;">
+                    <% if (examen.archivo) { %>
+                      <a
+                        href="/examenes-laboratorio/<%= examen.id %>/descargar"
+                        class="btn btn-sm btn-info"
+                        title="Descargar"
+                      >
+                        <i data-lucide="download"></i>
+                      </a>
+                    <% } %>
+                    <form
+                      id="form-eliminar-examen-<%= examen.id %>"
+                      action="/examenes-laboratorio/<%= examen.id %>"
+                      method="POST"
+                      style="display: inline;"
+                    >
+                      <input type="hidden" name="_method" value="DELETE">
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-danger"
+                        title="Eliminar"
+                        onclick="confirmarEliminarExamen(<%= examen.id %>, <%= JSON.stringify(examen.tipoExamen) %>)"
+                      >
+                        <i data-lucide="trash-2"></i>
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } else { %>
+        <p class="text-muted" style="margin: 0;">No hay exámenes registrados para este historial.</p>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Otros historiales de la misma mascota -->
+  <% if (otrosHistoriales && otrosHistoriales.length > 0) { %>
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">
+          <i data-lucide="history"></i>
+          Otros Historiales de
+          <%= historial.mascota ? historial.mascota.nombre : 'esta mascota' %>
+          <span class="badge badge-info"><%= otrosHistoriales.length %></span>
+        </span>
+        <% if (historial.mascota) { %>
+          <a href="/mascotas/<%= historial.mascota.id %>/historial" class="btn btn-sm btn-outline">
+            Ver todos
+          </a>
+        <% } %>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Veterinario</th>
+                <th>Motivo / Diagnóstico</th>
+                <th class="text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% otrosHistoriales.forEach(otro => { %>
+                <tr>
+                  <td style="white-space: nowrap;">
+                    <%= otro.fechaRegistro ? new Date(otro.fechaRegistro).toLocaleDateString('es-PE') : '—' %>
+                  </td>
+                  <td>
+                    <%= otro.usuario ? otro.usuario.nombre : '—' %>
+                  </td>
+                  <td style="max-width: 300px;">
+                    <% if (otro.motivoConsulta) { %>
+                      <div class="text-truncate" title="<%= otro.motivoConsulta %>" style="max-width: 300px;">
+                        <small class="text-muted">Motivo:</small>
+                        <%= otro.motivoConsulta.length > 70 ? otro.motivoConsulta.substring(0, 70) + '…' : otro.motivoConsulta %>
+                      </div>
+                    <% } %>
+                    <% if (otro.diagnostico) { %>
+                      <div class="text-truncate" title="<%= otro.diagnostico %>" style="max-width: 300px;">
+                        <small class="text-muted">Dx:</small>
+                        <%= otro.diagnostico.length > 70 ? otro.diagnostico.substring(0, 70) + '…' : otro.diagnostico %>
+                      </div>
+                    <% } %>
+                    <% if (!otro.motivoConsulta && !otro.diagnostico) { %>
+                      <span class="text-muted">—</span>
+                    <% } %>
+                  </td>
+                  <td class="text-center">
+                    <a href="/historial-clinico/<%= otro.id %>" class="btn btn-sm btn-info" title="Ver detalle">
+                      <i data-lucide="eye"></i>
+                    </a>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  <% } %>
+
+
+<script>
+  function confirmarEliminarExamen(id, tipo) {
+    Swal.fire({
+      title: '¿Eliminar examen?',
+      html: 'Se eliminará el examen <strong>' + tipo + '</strong> y su archivo adjunto.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#64748b',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+      background: '#1e293b',
+      color: '#f8fafc',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        document.getElementById('form-eliminar-examen-' + id).submit();
+      }
+    });
+  }
+</script>
+
+<%- include('../partials/footer') %>

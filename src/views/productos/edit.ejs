@@ -1,0 +1,204 @@
+<%- include('../partials/head', { title: title }) %>
+<%- include('../partials/sidebar') %>
+
+
+  <!-- Breadcrumb -->
+  <div class="page-header">
+    <div class="page-header-left">
+      <nav class="breadcrumb">
+        <a href="/productos" class="breadcrumb-link">Productos</a>
+        <span class="breadcrumb-sep">/</span>
+        <a href="/productos/<%= producto.id %>" class="breadcrumb-link"><%= producto.nombre %></a>
+        <span class="breadcrumb-sep">/</span>
+        <span>Editar</span>
+      </nav>
+    </div>
+    <div class="page-header-right">
+      <a href="/productos/<%= producto.id %>" class="btn btn-outline">
+        <i data-lucide="arrow-left"></i>
+        Volver
+      </a>
+    </div>
+  </div>
+
+  <!-- Formulario -->
+  <div class="card" style="max-width: 720px; margin: 0 auto;">
+    <div class="card-header">
+      <span class="card-title">
+        <i data-lucide="pencil"></i>
+        Editar Producto
+      </span>
+    </div>
+    <div class="card-body">
+      <form method="POST" action="/productos/<%= producto.id %>?_method=PUT" novalidate>
+
+        <!-- Nombre -->
+        <div class="form-group">
+          <label for="nombre" class="form-label">
+            Nombre <span class="text-danger">*</span>
+          </label>
+          <input
+            type="text"
+            id="nombre"
+            name="nombre"
+            class="form-control"
+            value="<%= producto.nombre %>"
+            maxlength="150"
+            required
+          />
+          <small class="form-hint">Nombre descriptivo del producto. Mínimo 2 caracteres.</small>
+        </div>
+
+        <!-- Código de Barras -->
+        <div class="form-group">
+          <label for="codigoBarras" class="form-label">Código de Barras</label>
+          <input
+            type="text"
+            id="codigoBarras"
+            name="codigoBarras"
+            class="form-control"
+            value="<%= producto.codigoBarras || '' %>"
+            maxlength="50"
+          />
+          <small class="form-hint">Opcional. Debe ser único si se ingresa.</small>
+        </div>
+
+        <!-- Categoría y Proveedor en fila -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+
+          <!-- Categoría -->
+          <div class="form-group">
+            <label for="idCategoria" class="form-label">
+              Categoría <span class="text-danger">*</span>
+            </label>
+            <select id="idCategoria" name="idCategoria" class="form-control" required>
+              <option value="">— Seleccionar categoría —</option>
+              <% categorias.forEach(cat => { %>
+                <option value="<%= cat.id %>" <%= producto.idCategoria == cat.id ? 'selected' : '' %>>
+                  <%= cat.nombre %>
+                </option>
+              <% }) %>
+            </select>
+          </div>
+
+          <!-- Proveedor -->
+          <div class="form-group">
+            <label for="idProveedor" class="form-label">Proveedor</label>
+            <select id="idProveedor" name="idProveedor" class="form-control">
+              <option value="">— Sin proveedor —</option>
+              <% proveedores.forEach(prov => { %>
+                <option value="<%= prov.id %>" <%= producto.idProveedor == prov.id ? 'selected' : '' %>>
+                  <%= prov.nombreEmpresa %>
+                </option>
+              <% }) %>
+            </select>
+          </div>
+
+        </div>
+
+        <!-- Precios en fila -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+
+          <!-- Precio Compra -->
+          <div class="form-group">
+            <label for="precioCompra" class="form-label">
+              Precio Compra (S/.) <span class="text-danger">*</span>
+            </label>
+            <input
+              type="number"
+              id="precioCompra"
+              name="precioCompra"
+              class="form-control"
+              value="<%= parseFloat(producto.precioCompra).toFixed(2) %>"
+              min="0"
+              step="0.01"
+              required
+            />
+          </div>
+
+          <!-- Precio Venta -->
+          <div class="form-group">
+            <label for="precioVenta" class="form-label">
+              Precio Venta (S/.) <span class="text-danger">*</span>
+            </label>
+            <input
+              type="number"
+              id="precioVenta"
+              name="precioVenta"
+              class="form-control"
+              value="<%= parseFloat(producto.precioVenta).toFixed(2) %>"
+              min="0"
+              step="0.01"
+              required
+            />
+          </div>
+
+        </div>
+
+        <!-- Stock en fila -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+
+          <!-- Stock Actual -->
+          <div class="form-group">
+            <label for="stockActual" class="form-label">
+              Stock Actual <span class="text-danger">*</span>
+            </label>
+            <input
+              type="number"
+              id="stockActual"
+              name="stockActual"
+              class="form-control"
+              value="<%= producto.stockActual %>"
+              min="0"
+              step="1"
+              required
+            />
+            <small class="form-hint">Para ajustes de inventario usa la vista de detalle.</small>
+          </div>
+
+          <!-- Stock Mínimo -->
+          <div class="form-group">
+            <label for="stockMinimo" class="form-label">
+              Stock Mínimo <span class="text-danger">*</span>
+            </label>
+            <input
+              type="number"
+              id="stockMinimo"
+              name="stockMinimo"
+              class="form-control"
+              value="<%= producto.stockMinimo %>"
+              min="0"
+              step="1"
+              required
+            />
+          </div>
+
+        </div>
+
+        <!-- Descripción -->
+        <div class="form-group">
+          <label for="descripcion" class="form-label">Descripción</label>
+          <textarea
+            id="descripcion"
+            name="descripcion"
+            class="form-control"
+            rows="3"
+          ><%= producto.descripcion || '' %></textarea>
+          <small class="form-hint">Opcional. Información adicional del producto.</small>
+        </div>
+
+        <!-- Botones -->
+        <div class="form-actions">
+          <a href="/productos/<%= producto.id %>" class="btn btn-outline">Cancelar</a>
+          <button type="submit" class="btn btn-primary">
+            <i data-lucide="save"></i>
+            Guardar Cambios
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+
+<%- include('../partials/footer') %>

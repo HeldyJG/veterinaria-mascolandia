@@ -1,0 +1,59 @@
+<form method="POST" action="/productos/<%= producto.id %>?_method=PUT" novalidate>
+  <input type="hidden" name="returnTo" value="list">
+  <div class="form-group">
+    <label for="modal-edit-prod-nombre" class="form-label">Nombre <span class="text-danger">*</span></label>
+    <input type="text" id="modal-edit-prod-nombre" name="nombre" class="form-control" value="<%= producto.nombre %>" maxlength="150" required>
+  </div>
+  <div class="form-group">
+    <label for="modal-edit-prod-codigo" class="form-label">Código de barras</label>
+    <input type="text" id="modal-edit-prod-codigo" name="codigoBarras" class="form-control" value="<%= producto.codigoBarras || '' %>" maxlength="50">
+  </div>
+  <div class="form-row-2">
+    <div class="form-group">
+      <label for="modal-edit-prod-cat" class="form-label">Categoría <span class="text-danger">*</span></label>
+      <select id="modal-edit-prod-cat" name="idCategoria" class="form-control" required>
+        <option value="">— Seleccionar —</option>
+        <% (categorias || []).forEach(cat => { %>
+          <option value="<%= cat.id %>" <%= producto.idCategoria == cat.id ? 'selected' : '' %>><%= cat.nombre %></option>
+        <% }) %>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="modal-edit-prod-prov" class="form-label">Proveedor</label>
+      <select id="modal-edit-prod-prov" name="idProveedor" class="form-control">
+        <option value="">— Sin proveedor —</option>
+        <% (proveedores || []).forEach(prov => { %>
+          <option value="<%= prov.id %>" <%= producto.idProveedor == prov.id ? 'selected' : '' %>><%= prov.nombreEmpresa %></option>
+        <% }) %>
+      </select>
+    </div>
+  </div>
+  <div class="form-row-2">
+    <div class="form-group">
+      <label for="modal-edit-prod-pcompra" class="form-label">Precio compra <span class="text-danger">*</span></label>
+      <input type="number" id="modal-edit-prod-pcompra" name="precioCompra" class="form-control" min="0" step="0.01" value="<%= parseFloat(producto.precioCompra).toFixed(2) %>" required>
+    </div>
+    <div class="form-group">
+      <label for="modal-edit-prod-pventa" class="form-label">Precio venta <span class="text-danger">*</span></label>
+      <input type="number" id="modal-edit-prod-pventa" name="precioVenta" class="form-control" min="0" step="0.01" value="<%= parseFloat(producto.precioVenta).toFixed(2) %>" required>
+    </div>
+  </div>
+  <div class="form-row-2">
+    <div class="form-group">
+      <label for="modal-edit-prod-stock" class="form-label">Stock actual <span class="text-danger">*</span></label>
+      <input type="number" id="modal-edit-prod-stock" name="stockActual" class="form-control" min="0" step="1" value="<%= producto.stockActual %>" required>
+    </div>
+    <div class="form-group">
+      <label for="modal-edit-prod-min" class="form-label">Stock mínimo <span class="text-danger">*</span></label>
+      <input type="number" id="modal-edit-prod-min" name="stockMinimo" class="form-control" min="0" step="1" value="<%= producto.stockMinimo %>" required>
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="modal-edit-prod-desc" class="form-label">Descripción</label>
+    <textarea id="modal-edit-prod-desc" name="descripcion" class="form-control" rows="2"><%= producto.descripcion || '' %></textarea>
+  </div>
+  <div class="form-actions">
+    <button type="button" class="btn btn-outline" data-modal-close="modal-gestion">Cancelar</button>
+    <button type="submit" class="btn btn-primary"><i data-lucide="save"></i> Guardar cambios</button>
+  </div>
+</form>

@@ -1,0 +1,75 @@
+<%- include('../modal-start', { modalId: 'modal-crear-mascota', modalTitle: 'Registrar mascota', modalIcon: 'heart', modalSize: 'modal-lg' }) %>
+<form method="POST" action="/mascotas" enctype="multipart/form-data" novalidate
+      data-ajax-modal="true" data-modal-id="modal-crear-mascota">
+  <div class="form-group">
+    <label for="modal-mascota-nombre" class="form-label">Nombre <span class="text-danger">*</span></label>
+    <input type="text" id="modal-mascota-nombre" name="nombre" class="form-control" maxlength="100" required>
+  </div>
+  <div class="form-group">
+    <label for="modal-mascota-cliente" class="form-label">Cliente <span class="text-danger">*</span></label>
+    <select id="modal-mascota-cliente" name="idCliente" class="form-control" required>
+      <option value="">— Seleccionar cliente —</option>
+      <% (clientes || []).forEach(c => { %>
+        <option value="<%= c.id %>"><%= c.nombreCompleto %></option>
+      <% }) %>
+    </select>
+  </div>
+  <div class="form-group">
+    <label for="modal-mascota-especie" class="form-label">Especie</label>
+    <select id="modal-mascota-especie" name="idEspecie" class="form-control">
+      <option value="">— Todas —</option>
+      <% (especies || []).forEach(e => { %>
+        <option value="<%= e.id %>"><%= e.nombre %></option>
+      <% }) %>
+    </select>
+  </div>
+  <div class="form-group">
+    <label for="modal-mascota-raza" class="form-label">Raza <span class="text-danger">*</span></label>
+    <select id="modal-mascota-raza" name="idRaza" class="form-control" required>
+      <option value="">— Seleccionar raza —</option>
+      <% (razas || []).forEach(r => { %>
+        <option value="<%= r.id %>"><%= r.nombre %></option>
+      <% }) %>
+    </select>
+  </div>
+  <div class="form-row-2">
+    <div class="form-group">
+      <label for="modal-mascota-sexo" class="form-label">Sexo</label>
+      <select id="modal-mascota-sexo" name="sexo" class="form-control">
+        <option value="">— No especificado —</option>
+        <option value="MACHO">Macho</option>
+        <option value="HEMBRA">Hembra</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="modal-mascota-fecha" class="form-label">Fecha nacimiento</label>
+      <%
+        const _n = new Date();
+        const _maxFecha = `${_n.getFullYear()}-${String(_n.getMonth()+1).padStart(2,'0')}-${String(_n.getDate()).padStart(2,'0')}`;
+      %>
+      <input type="date" id="modal-mascota-fecha" name="fechaNacimiento" class="form-control" max="<%= _maxFecha %>">
+    </div>
+  </div>
+  <div class="form-row-2">
+    <div class="form-group">
+      <label for="modal-mascota-peso" class="form-label">Peso (kg)</label>
+      <input type="number" id="modal-mascota-peso" name="pesoActual" class="form-control" step="0.01" min="0">
+    </div>
+    <div class="form-group">
+      <label for="modal-mascota-color" class="form-label">Color</label>
+      <input type="text" id="modal-mascota-color" name="color" class="form-control" maxlength="100">
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="modal-mascota-foto" class="form-label">Foto</label>
+    <input type="file" id="modal-mascota-foto" name="foto" class="form-control" accept="image/*">
+    <div id="modal-mascota-foto-preview" style="display:none;margin-top:0.5rem;">
+      <img id="modal-mascota-foto-img" src="" alt="Preview" style="max-width:120px;max-height:120px;border-radius:8px;object-fit:cover;">
+    </div>
+  </div>
+  <div class="form-actions">
+    <button type="button" class="btn btn-outline" data-modal-close="modal-crear-mascota">Cancelar</button>
+    <button type="submit" class="btn btn-primary"><i data-lucide="save"></i> Registrar</button>
+  </div>
+</form>
+<%- include('../modal-end') %>

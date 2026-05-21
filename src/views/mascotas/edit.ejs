@@ -1,0 +1,285 @@
+<%- include('../partials/head', { title: title }) %>
+<%- include('../partials/sidebar') %>
+
+
+  <!-- Breadcrumb -->
+  <div class="page-header">
+    <div class="page-header-left">
+      <nav class="breadcrumb">
+        <a href="/mascotas" class="breadcrumb-link">Mascotas</a>
+        <span class="breadcrumb-sep">/</span>
+        <a href="/mascotas/<%= mascota.id %>" class="breadcrumb-link"><%= mascota.nombre %></a>
+        <span class="breadcrumb-sep">/</span>
+        <span>Editar</span>
+      </nav>
+    </div>
+    <div class="page-header-right">
+      <a href="/mascotas/<%= mascota.id %>" class="btn btn-outline">
+        <i data-lucide="arrow-left"></i>
+        Volver
+      </a>
+    </div>
+  </div>
+
+  <!-- Formulario -->
+  <div class="card" style="max-width: 720px; margin: 0 auto;">
+    <div class="card-header">
+      <span class="card-title">
+        <i data-lucide="pencil"></i>
+        Editar Mascota
+      </span>
+    </div>
+    <div class="card-body">
+      <form method="POST" action="/mascotas/<%= mascota.id %>?_method=PUT" enctype="multipart/form-data" novalidate>
+
+        <!-- Nombre -->
+        <div class="form-group">
+          <label for="nombre" class="form-label">
+            Nombre <span class="text-danger">*</span>
+          </label>
+          <input
+            type="text"
+            id="nombre"
+            name="nombre"
+            class="form-control"
+            value="<%= mascota.nombre %>"
+            maxlength="100"
+            required
+          />
+        </div>
+
+        <!-- Cliente -->
+        <div class="form-group">
+          <label for="idCliente" class="form-label">
+            Cliente <span class="text-danger">*</span>
+          </label>
+          <select id="idCliente" name="idCliente" class="form-control" required>
+            <option value="">— Seleccionar cliente —</option>
+            <% clientes.forEach(cliente => { %>
+              <option value="<%= cliente.id %>" <%= mascota.idCliente == cliente.id ? 'selected' : '' %>>
+                <%= cliente.nombreCompleto %>
+              </option>
+            <% }) %>
+          </select>
+        </div>
+
+        <!-- Especie (para filtrar razas) -->
+        <div class="form-group">
+          <label for="idEspecie" class="form-label">Especie</label>
+          <select id="idEspecie" name="idEspecie" class="form-control">
+            <option value="">— Todas las especies —</option>
+            <% especies.forEach(especie => { %>
+              <option value="<%= especie.id %>"
+                <%= (mascota.raza && mascota.raza.especie && mascota.raza.especie.id == especie.id) ? 'selected' : '' %>>
+                <%= especie.nombre %>
+              </option>
+            <% }) %>
+          </select>
+          <small class="form-hint">Selecciona una especie para filtrar las razas disponibles.</small>
+        </div>
+
+        <!-- Raza -->
+        <div class="form-group">
+          <label for="idRaza" class="form-label">
+            Raza <span class="text-danger">*</span>
+          </label>
+          <select id="idRaza" name="idRaza" class="form-control" required>
+            <option value="">— Seleccionar raza —</option>
+            <% razas.forEach(raza => { %>
+              <option value="<%= raza.id %>" <%= mascota.idRaza == raza.id ? 'selected' : '' %>>
+                <%= raza.nombre %>
+              </option>
+            <% }) %>
+          </select>
+        </div>
+
+        <!-- Sexo -->
+        <div class="form-group">
+          <label for="sexo" class="form-label">Sexo</label>
+          <select id="sexo" name="sexo" class="form-control">
+            <option value="" <%= !mascota.sexo ? 'selected' : '' %>>— No especificado —</option>
+            <option value="MACHO" <%= mascota.sexo === 'MACHO' ? 'selected' : '' %>>Macho</option>
+            <option value="HEMBRA" <%= mascota.sexo === 'HEMBRA' ? 'selected' : '' %>>Hembra</option>
+          </select>
+        </div>
+
+        <!-- Fecha de Nacimiento -->
+        <div class="form-group">
+          <label for="fechaNacimiento" class="form-label">Fecha de Nacimiento</label>
+          <input
+            type="date"
+            id="fechaNacimiento"
+            name="fechaNacimiento"
+            class="form-control"
+            value="<%= mascota.fechaNacimiento ? new Date(mascota.fechaNacimiento).toISOString().split('T')[0] : '' %>"
+            max="<%= new Date().toISOString().split('T')[0] %>"
+          />
+          <small class="form-hint">Opcional. Se usará para calcular la edad.</small>
+        </div>
+
+        <!-- Peso Actual -->
+        <div class="form-group">
+          <label for="pesoActual" class="form-label">Peso Actual (kg)</label>
+          <input
+            type="number"
+            id="pesoActual"
+            name="pesoActual"
+            class="form-control"
+            value="<%= mascota.pesoActual || '' %>"
+            step="0.01"
+            min="0"
+            max="999"
+            placeholder="Ej: 5.2"
+          />
+        </div>
+
+        <!-- Color -->
+        <div class="form-group">
+          <label for="color" class="form-label">Color / Pelaje</label>
+          <input
+            type="text"
+            id="color"
+            name="color"
+            class="form-control"
+            value="<%= mascota.color || '' %>"
+            placeholder="Ej: Marrón con blanco"
+            maxlength="100"
+          />
+        </div>
+
+        <!-- Foto -->
+        <div class="form-group">
+          <label class="form-label">Foto</label>
+
+          <!-- Preview de foto actual -->
+          <% if (fotoActual) { %>
+            <div id="fotoActualContainer" style="margin-bottom:10px;">
+              <p style="font-size:0.85rem; color:#94a3b8; margin-bottom:6px;">Foto actual:</p>
+              <img
+                id="fotoPreviewImg"
+                src="/uploads/fotos/<%= fotoActual %>"
+                alt="Foto actual de <%= mascota.nombre %>"
+                style="max-width:150px; max-height:150px; object-fit:cover; border-radius:8px; border:2px solid #334155;"
+              />
+            </div>
+          <% } else { %>
+            <div id="fotoActualContainer" style="margin-bottom:10px; display:none;">
+              <p style="font-size:0.85rem; color:#94a3b8; margin-bottom:6px;">Nueva foto:</p>
+              <img
+                id="fotoPreviewImg"
+                src=""
+                alt="Preview"
+                style="max-width:150px; max-height:150px; object-fit:cover; border-radius:8px; border:2px solid #334155;"
+              />
+            </div>
+          <% } %>
+
+          <input
+            type="file"
+            id="foto"
+            name="foto"
+            class="form-control"
+            accept="image/*"
+          />
+          <small class="form-hint">
+            <% if (fotoActual) { %>
+              Selecciona un nuevo archivo para reemplazar la foto actual. Formatos: JPG, PNG, WEBP. Máx. 5MB.
+            <% } else { %>
+              Opcional. Formatos: JPG, PNG, WEBP. Máx. 5MB.
+            <% } %>
+          </small>
+        </div>
+
+        <!-- Botones -->
+        <div class="form-actions">
+          <a href="/mascotas/<%= mascota.id %>" class="btn btn-outline">Cancelar</a>
+          <button type="submit" class="btn btn-primary">
+            <i data-lucide="save"></i>
+            Guardar Cambios
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+
+<script>
+  // Especie y raza actuales de la mascota (para mantener selección al cargar dinámicamente)
+  const idRazaActual = '<%= mascota.idRaza %>';
+  const idEspecieActual = '<%= (mascota.raza && mascota.raza.especie) ? mascota.raza.especie.id : "" %>';
+
+  const selectEspecie = document.getElementById('idEspecie');
+  const selectRaza = document.getElementById('idRaza');
+
+  // Guardar todas las razas iniciales
+  const todasLasRazas = Array.from(selectRaza.options).map(opt => ({
+    value: opt.value,
+    text: opt.text,
+  }));
+
+  selectEspecie.addEventListener('change', async function () {
+    const idEspecie = this.value;
+
+    selectRaza.innerHTML = '<option value="">— Cargando razas... —</option>';
+
+    if (!idEspecie) {
+      // Sin especie: restaurar todas las razas
+      selectRaza.innerHTML = '<option value="">— Seleccionar raza —</option>';
+      todasLasRazas.forEach(r => {
+        if (r.value) {
+          const opt = document.createElement('option');
+          opt.value = r.value;
+          opt.textContent = r.text;
+          if (r.value === idRazaActual) opt.selected = true;
+          selectRaza.appendChild(opt);
+        }
+      });
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/mascotas/razas/${idEspecie}`);
+      const data = await response.json();
+
+      selectRaza.innerHTML = '<option value="">— Seleccionar raza —</option>';
+
+      if (data.success && data.data.length > 0) {
+        data.data.forEach(raza => {
+          const opt = document.createElement('option');
+          opt.value = raza.id;
+          opt.textContent = raza.nombre;
+          // Mantener la raza actual seleccionada si pertenece a esta especie
+          if (String(raza.id) === String(idRazaActual)) opt.selected = true;
+          selectRaza.appendChild(opt);
+        });
+      } else {
+        selectRaza.innerHTML = '<option value="">— Sin razas para esta especie —</option>';
+      }
+    } catch (err) {
+      console.error('Error al cargar razas:', err);
+      selectRaza.innerHTML = '<option value="">— Error al cargar razas —</option>';
+    }
+  });
+
+  // Preview de foto al seleccionar nuevo archivo
+  document.getElementById('foto').addEventListener('change', function () {
+    const file = this.files[0];
+    const container = document.getElementById('fotoActualContainer');
+    const previewImg = document.getElementById('fotoPreviewImg');
+
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        previewImg.src = e.target.result;
+        container.style.display = 'block';
+        // Actualizar etiqueta si había foto anterior
+        const label = container.querySelector('p');
+        if (label) label.textContent = 'Nueva foto (preview):';
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+</script>
+
+<%- include('../partials/footer') %>

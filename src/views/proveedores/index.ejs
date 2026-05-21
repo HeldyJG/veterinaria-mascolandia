@@ -1,0 +1,170 @@
+<%- include('../partials/head', { title: title }) %>
+<%- include('../partials/sidebar') %>
+
+  <!-- Flash messages are handled by footer partial via SweetAlert2 -->
+
+  <!-- Header de página -->
+  <div class="page-header">
+    <div class="page-header-left">
+      <h2 class="page-subtitle">Lista de proveedores activos</h2>
+    </div>
+    <div class="page-header-right">
+      <button type="button" class="btn btn-primary" onclick="MascoModal.open('modal-crear-proveedor')">
+        <i data-lucide="plus"></i>
+        Nuevo Proveedor
+      </button>
+    </div>
+  </div>
+
+  <!-- Buscador -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <form method="GET" action="/proveedores" class="search-form">
+        <div class="input-group">
+          <input
+            type="text"
+            name="busqueda"
+            class="form-control"
+            placeholder="Buscar por nombre de empresa o RUC..."
+            value="<%= busqueda %>"
+          />
+          <button type="submit" class="btn btn-secondary">
+            <i data-lucide="search"></i>
+            Buscar
+          </button>
+          <% if (busqueda) { %>
+            <a href="/proveedores" class="btn btn-outline">
+              <i data-lucide="x"></i>
+              Limpiar
+            </a>
+          <% } %>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Tabla de proveedores -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">
+        Proveedores
+        <span class="badge badge-info"><%= totalRegistros %> registros</span>
+      </span>
+    </div>
+    <div class="card-body p-0">
+      <% if (proveedores.length === 0) { %>
+        <div class="empty-state">
+          <i data-lucide="package-x"></i>
+          <p>No se encontraron proveedores<% if (busqueda) { %> para "<%= busqueda %>"<% } %>.</p>
+          <button type="button" class="btn btn-primary" onclick="MascoModal.open('modal-crear-proveedor')">Registrar primer proveedor</button>
+        </div>
+      <% } else { %>
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Empresa</th>
+                <th>RUC</th>
+                <th>Teléfono</th>
+                <th>Correo</th>
+                <th>Dirección</th>
+                <th class="text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% proveedores.forEach((proveedor, index) => { %>
+                <tr>
+                  <td><%= ((pagina - 1) * 20) + index + 1 %></td>
+                  <td>
+                    <a href="/proveedores/<%= proveedor.id %>" class="link-primary fw-semibold">
+                      <%= proveedor.nombreEmpresa %>
+                    </a>
+                  </td>
+                  <td><%= proveedor.ruc || '—' %></td>
+                  <td><%= proveedor.telefono %></td>
+                  <td><%= proveedor.correo || '—' %></td>
+                  <td class="text-truncate" style="max-width:200px;" title="<%= proveedor.direccion || '' %>">
+                    <%= proveedor.direccion || '—' %>
+                  </td>
+                  <td class="text-center">
+                    <div class="action-buttons">
+                      <a href="/proveedores/<%= proveedor.id %>" class="btn btn-sm btn-info" title="Ver detalle">
+                        <i data-lucide="eye"></i>
+                      </a>
+                      <a href="/proveedores/<%= proveedor.id %>/editar" class="btn btn-sm btn-warning" title="Editar">
+                        <i data-lucide="pencil"></i>
+                      </a>
+                      <form method="POST" action="/proveedores/<%= proveedor.id %>?_method=DELETE" style="display:inline;"
+                            onsubmit="return confirmarEliminar(event, '<%= proveedor.nombreEmpresa %>')">
+                        <button type="submit" class="btn btn-sm btn-danger" title="Desactivar">
+                          <i data-lucide="trash-2"></i>
+                        </button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Paginación -->
+        <% if (totalPaginas > 1) { %>
+          <div class="pagination-wrapper">
+            <div class="pagination-info">
+              Página <%= pagina %> de <%= totalPaginas %> — <%= totalRegistros %> registros en total
+            </div>
+            <div class="pagination">
+              <% if (pagina > 1) { %>
+                <a href="/proveedores?pagina=<%= pagina - 1 %>&busqueda=<%= busqueda %>" class="page-link">
+                  <i data-lucide="chevron-left"></i>
+                </a>
+              <% } %>
+
+              <% for (let i = Math.max(1, pagina - 2); i <= Math.min(totalPaginas, pagina + 2); i++) { %>
+                <a href="/proveedores?pagina=<%= i %>&busqueda=<%= busqueda %>"
+                   class="page-link <%= i === pagina ? 'active' : '' %>">
+                  <%= i %>
+                </a>
+              <% } %>
+
+              <% if (pagina < totalPaginas) { %>
+                <a href="/proveedores?pagina=<%= pagina + 1 %>&busqueda=<%= busqueda %>" class="page-link">
+                  <i data-lucide="chevron-right"></i>
+                </a>
+              <% } %>
+            </div>
+          </div>
+        <% } %>
+      <% } %>
+    </div>
+  </div>
+
+<script>
+  function confirmarEliminar(event, nombre) {
+    event.preventDefault();
+    const form = event.target;
+    Swal.fire({
+      title: '¿Desactivar proveedor?',
+      text: `Se desactivará "${nombre}". Esta acción se puede revertir.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Sí, desactivar',
+      cancelButtonText: 'Cancelar',
+      background: '#1e293b',
+      color: '#f8fafc',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        form.submit();
+      }
+    });
+    return false;
+  }
+</script>
+
+<%- include('../partials/modals/proveedor-crear') %>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,88 @@
+<%- include('../partials/head', { title: title }) %>
+<%- include('../partials/sidebar') %>
+
+
+  <div class="page-header">
+    <div class="page-header-left">
+      <nav class="breadcrumb">
+        <a href="/usuarios" class="breadcrumb-link">Usuarios</a>
+        <span class="breadcrumb-sep">/</span>
+        <span>Contraseña</span>
+      </nav>
+    </div>
+    <div class="page-header-right">
+      <a href="<%= esPropio ? '/dashboard' : '/usuarios' %>" class="btn btn-outline">
+        <i data-lucide="arrow-left"></i>
+        Volver
+      </a>
+    </div>
+  </div>
+
+  <div class="card" style="max-width: 520px; margin: 0 auto;">
+    <div class="card-header">
+      <span class="card-title">
+        <i data-lucide="key"></i>
+        Cambiar contraseña — <%= usuario.nombre %>
+      </span>
+    </div>
+    <div class="card-body">
+      <form method="POST" action="/usuarios/<%= usuario.id %>/cambiar-clave?_method=PUT" novalidate>
+        <% if (esPropio) { %>
+          <div class="form-group">
+            <label for="claveActual" class="form-label">Contraseña actual <span class="text-danger">*</span></label>
+            <input
+              type="password"
+              id="claveActual"
+              name="claveActual"
+              class="form-control"
+              required
+              autocomplete="current-password"
+            >
+          </div>
+        <% } else { %>
+          <p class="text-muted" style="margin-bottom: 1rem; font-size: 0.9rem;">
+            Como administrador puede restablecer la contraseña sin la contraseña actual.
+            Se cerrarán las sesiones activas de este usuario.
+          </p>
+        <% } %>
+
+        <div class="form-group">
+          <label for="claveNueva" class="form-label">Nueva contraseña <span class="text-danger">*</span></label>
+          <input
+            type="password"
+            id="claveNueva"
+            name="claveNueva"
+            class="form-control"
+            minlength="8"
+            required
+            autocomplete="new-password"
+          >
+          <small class="form-hint">Mínimo 8 caracteres, al menos una letra y un número.</small>
+        </div>
+
+        <div class="form-group">
+          <label for="claveConfirmacion" class="form-label">Confirmar nueva contraseña <span class="text-danger">*</span></label>
+          <input
+            type="password"
+            id="claveConfirmacion"
+            name="claveConfirmacion"
+            class="form-control"
+            minlength="8"
+            required
+            autocomplete="new-password"
+          >
+        </div>
+
+        <div class="form-actions">
+          <a href="<%= esPropio ? '/dashboard' : '/usuarios' %>" class="btn btn-outline">Cancelar</a>
+          <button type="submit" class="btn btn-primary">
+            <i data-lucide="save"></i>
+            Actualizar contraseña
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+<%- include('../partials/footer') %>

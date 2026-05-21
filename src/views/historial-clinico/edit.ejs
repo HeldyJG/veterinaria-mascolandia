@@ -1,0 +1,190 @@
+<%- include('../partials/head', { title: title }) %>
+<%- include('../partials/sidebar') %>
+
+
+  <!-- Breadcrumb -->
+  <div class="page-header">
+    <div class="page-header-left">
+      <nav class="breadcrumb">
+        <a href="/historial-clinico" class="breadcrumb-link">Historial Clínico</a>
+        <span class="breadcrumb-sep">/</span>
+        <a href="/historial-clinico/<%= historial.id %>" class="breadcrumb-link">#<%= historial.id %></a>
+        <span class="breadcrumb-sep">/</span>
+        <span>Editar</span>
+      </nav>
+    </div>
+    <div class="page-header-right">
+      <a href="/historial-clinico/<%= historial.id %>" class="btn btn-outline">
+        <i data-lucide="arrow-left"></i>
+        Volver
+      </a>
+    </div>
+  </div>
+
+  <!-- Formulario -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">
+        <i data-lucide="pencil"></i>
+        Editar Historial Clínico #<%= historial.id %>
+      </span>
+    </div>
+    <div class="card-body">
+      <form method="POST" action="/historial-clinico/<%= historial.id %>?_method=PUT" novalidate>
+
+        <!-- Fila: Mascota + Veterinario -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+
+          <!-- Mascota -->
+          <div class="form-group">
+            <label for="idMascota" class="form-label">
+              Mascota <span class="text-danger">*</span>
+            </label>
+            <select id="idMascota" name="idMascota" class="form-control" required>
+              <option value="">— Seleccionar mascota —</option>
+              <% mascotas.forEach(mascota => { %>
+                <option value="<%= mascota.id %>"
+                  <%= parseInt(historial.idMascota) === parseInt(mascota.id) ? 'selected' : '' %>>
+                  <%= mascota.nombre %>
+                  <% if (mascota.cliente) { %> — <%= mascota.cliente.nombreCompleto %><% } %>
+                  <% if (mascota.raza) { %> (<%= mascota.raza.nombre %>)<% } %>
+                </option>
+              <% }) %>
+            </select>
+            <small class="form-hint">Mascota a la que pertenece este historial.</small>
+          </div>
+
+          <!-- Veterinario -->
+          <div class="form-group">
+            <label for="idUsuario" class="form-label">
+              Veterinario <span class="text-danger">*</span>
+            </label>
+            <select id="idUsuario" name="idUsuario" class="form-control" required>
+              <option value="">— Seleccionar veterinario —</option>
+              <% usuarios.forEach(usuario => { %>
+                <option value="<%= usuario.id %>"
+                  <%= parseInt(historial.idUsuario) === parseInt(usuario.id) ? 'selected' : '' %>>
+                  <%= usuario.nombre %>
+                </option>
+              <% }) %>
+            </select>
+            <small class="form-hint">Profesional que atendió la consulta.</small>
+          </div>
+
+        </div>
+
+        <!-- Motivo de Consulta -->
+        <div class="form-group">
+          <label for="motivoConsulta" class="form-label">Motivo de Consulta</label>
+          <input
+            type="text"
+            id="motivoConsulta"
+            name="motivoConsulta"
+            class="form-control"
+            value="<%= historial.motivoConsulta || '' %>"
+            placeholder="Ej: Revisión general, vacunación, malestar digestivo..."
+            maxlength="255"
+          />
+          <small class="form-hint">Razón principal de la visita.</small>
+        </div>
+
+        <!-- Síntomas -->
+        <div class="form-group">
+          <label for="sintomas" class="form-label">Síntomas</label>
+          <textarea
+            id="sintomas"
+            name="sintomas"
+            class="form-control"
+            rows="3"
+            placeholder="Describa los síntomas observados..."
+          ><%= historial.sintomas || '' %></textarea>
+        </div>
+
+        <!-- Fila: Peso + Temperatura -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+
+          <div class="form-group">
+            <label for="peso" class="form-label">Peso (kg)</label>
+            <input
+              type="number"
+              id="peso"
+              name="peso"
+              class="form-control"
+              value="<%= historial.peso !== null && historial.peso !== undefined ? parseFloat(historial.peso).toFixed(2) : '' %>"
+              placeholder="Ej: 4.50"
+              step="0.01"
+              min="0"
+              max="999.99"
+            />
+            <small class="form-hint">Peso actual de la mascota en kilogramos.</small>
+          </div>
+
+          <div class="form-group">
+            <label for="temperatura" class="form-label">Temperatura (°C)</label>
+            <input
+              type="number"
+              id="temperatura"
+              name="temperatura"
+              class="form-control"
+              value="<%= historial.temperatura !== null && historial.temperatura !== undefined ? parseFloat(historial.temperatura).toFixed(1) : '' %>"
+              placeholder="Ej: 38.5"
+              step="0.1"
+              min="0"
+              max="99.9"
+            />
+            <small class="form-hint">Temperatura corporal en grados Celsius.</small>
+          </div>
+
+        </div>
+
+        <!-- Diagnóstico -->
+        <div class="form-group">
+          <label for="diagnostico" class="form-label">Diagnóstico</label>
+          <textarea
+            id="diagnostico"
+            name="diagnostico"
+            class="form-control"
+            rows="3"
+            placeholder="Diagnóstico clínico del veterinario..."
+          ><%= historial.diagnostico || '' %></textarea>
+        </div>
+
+        <!-- Tratamiento -->
+        <div class="form-group">
+          <label for="tratamiento" class="form-label">Tratamiento</label>
+          <textarea
+            id="tratamiento"
+            name="tratamiento"
+            class="form-control"
+            rows="3"
+            placeholder="Medicamentos, procedimientos, indicaciones..."
+          ><%= historial.tratamiento || '' %></textarea>
+        </div>
+
+        <!-- Observaciones -->
+        <div class="form-group">
+          <label for="observaciones" class="form-label">Observaciones</label>
+          <textarea
+            id="observaciones"
+            name="observaciones"
+            class="form-control"
+            rows="2"
+            placeholder="Notas adicionales, seguimiento recomendado..."
+          ><%= historial.observaciones || '' %></textarea>
+        </div>
+
+        <!-- Botones -->
+        <div class="form-actions">
+          <a href="/historial-clinico/<%= historial.id %>" class="btn btn-outline">Cancelar</a>
+          <button type="submit" class="btn btn-primary">
+            <i data-lucide="save"></i>
+            Guardar Cambios
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+
+<%- include('../partials/footer') %>

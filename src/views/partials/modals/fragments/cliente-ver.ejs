@@ -1,0 +1,53 @@
+<div class="detail-grid">
+  <div class="detail-item">
+    <span class="detail-label">Nombre completo</span>
+    <span class="detail-value fw-semibold"><%= cliente.nombreCompleto %></span>
+  </div>
+  <div class="detail-item">
+    <span class="detail-label">DNI</span>
+    <span class="detail-value"><%= cliente.dni || '—' %></span>
+  </div>
+  <div class="detail-item">
+    <span class="detail-label">Teléfono</span>
+    <span class="detail-value"><%= cliente.telefono %></span>
+  </div>
+  <div class="detail-item">
+    <span class="detail-label">Correo</span>
+    <span class="detail-value"><%= cliente.correo || '—' %></span>
+  </div>
+  <div class="detail-item" style="grid-column:1/-1;">
+    <span class="detail-label">Dirección</span>
+    <span class="detail-value"><%= cliente.direccion %></span>
+  </div>
+</div>
+
+<% if (cliente.mascotas && cliente.mascotas.length) { %>
+  <h4 style="margin:1.25rem 0 0.5rem;font-size:0.95rem;color:var(--text-muted);">Mascotas (<%= cliente.mascotas.length %>)</h4>
+  <div class="table-responsive">
+    <table class="table table-striped table-sm">
+      <thead>
+        <tr><th>Nombre</th><th>Raza</th><th></th></tr>
+      </thead>
+      <tbody>
+        <% cliente.mascotas.forEach(m => { %>
+          <tr>
+            <td><%= m.nombre %></td>
+            <td><%= m.raza ? m.raza.nombre : '—' %></td>
+            <td class="text-end">
+              <button type="button" class="btn btn-sm btn-outline" onclick="MascoGestion.ver('mascota', <%= m.id %>)">Ver</button>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+<% } else { %>
+  <p class="text-muted" style="margin-top:1rem;">Sin mascotas registradas.</p>
+<% } %>
+
+<div class="modal-fragment-footer">
+  <a href="/clientes/<%= cliente.id %>" class="btn btn-sm btn-outline">Vista completa</a>
+  <button type="button" class="btn btn-sm btn-warning" onclick="MascoGestion.editar('cliente', <%= cliente.id %>)">
+    <i data-lucide="pencil"></i> Editar
+  </button>
+</div>

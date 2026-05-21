@@ -1,0 +1,198 @@
+<%- include('../partials/head', { title: title }) %>
+<%- include('../partials/sidebar') %>
+
+
+  <!-- Header de página -->
+  <div class="page-header">
+    <div class="page-header-left">
+      <h2 class="page-subtitle">Lista de mascotas registradas</h2>
+    </div>
+    <div class="page-header-right">
+      <button type="button" class="btn btn-primary" onclick="MascoModal.open('modal-crear-mascota')">
+        <i data-lucide="plus"></i>
+        Nueva Mascota
+      </button>
+    </div>
+  </div>
+
+  <!-- Buscador -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <form method="GET" action="/mascotas" class="search-form">
+        <div class="input-group">
+          <input
+            type="text"
+            name="busqueda"
+            class="form-control"
+            placeholder="Buscar por nombre de mascota o cliente..."
+            value="<%= busqueda %>"
+          />
+          <button type="submit" class="btn btn-secondary">
+            <i data-lucide="search"></i>
+            Buscar
+          </button>
+          <% if (busqueda) { %>
+            <a href="/mascotas" class="btn btn-outline">
+              <i data-lucide="x"></i>
+              Limpiar
+            </a>
+          <% } %>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Tabla de mascotas -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">
+        Mascotas
+        <span class="badge badge-info"><%= totalRegistros %> registros</span>
+      </span>
+    </div>
+    <div class="card-body p-0">
+      <% if (mascotas.length === 0) { %>
+        <div class="empty-state">
+          <i data-lucide="heart"></i>
+          <p>No se encontraron mascotas<% if (busqueda) { %> para "<%= busqueda %>"<% } %>.</p>
+          <button type="button" class="btn btn-primary" onclick="MascoModal.open('modal-crear-mascota')">Registrar primera mascota</button>
+        </div>
+      <% } else { %>
+        <div class="table-responsive">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Foto</th>
+                <th>Nombre</th>
+                <th>Cliente</th>
+                <th>Especie / Raza</th>
+                <th>Sexo</th>
+                <th class="text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% mascotas.forEach((mascota, index) => { %>
+                <tr>
+                  <td><%= ((pagina - 1) * 20) + index + 1 %></td>
+                  <td>
+                    <% if (mascota.foto) { %>
+                      <img
+                        src="/uploads/fotos/<%= mascota.foto %>"
+                        alt="<%= mascota.nombre %>"
+                        style="width:40px; height:40px; object-fit:cover; border-radius:6px;"
+                      />
+                    <% } else { %>
+                      <div style="width:40px; height:40px; background:#334155; border-radius:6px; display:flex; align-items:center; justify-content:center;">
+                        <i data-lucide="heart" style="width:20px; height:20px; color:#94a3b8;"></i>
+                      </div>
+                    <% } %>
+                  </td>
+                  <td class="fw-semibold"><%= mascota.nombre %></td>
+                  <td><%= mascota.cliente ? mascota.cliente.nombreCompleto : '—' %></td>
+                  <td>
+                    <% if (mascota.raza) { %>
+                      <span class="text-muted" style="font-size:0.8rem;">
+                        <%= mascota.raza.especie ? mascota.raza.especie.nombre : '' %>
+                      </span><br/>
+                      <%= mascota.raza.nombre %>
+                    <% } else { %>
+                      —
+                    <% } %>
+                  </td>
+                  <td>
+                    <% if (mascota.sexo === 'MACHO') { %>
+                      <span class="badge badge-info">Macho</span>
+                    <% } else if (mascota.sexo === 'HEMBRA') { %>
+                      <span class="badge" style="background:#ec4899; color:#fff;">Hembra</span>
+                    <% } else { %>
+                      —
+                    <% } %>
+                  </td>
+                  <td class="text-center">
+                    <div class="action-buttons">
+                      <button type="button" class="btn btn-sm btn-info" title="Ver detalle" onclick="MascoGestion.ver('mascota', <%= mascota.id %>)">
+                        <i data-lucide="eye"></i>
+                      </button>
+                      <button type="button" class="btn btn-sm btn-warning" title="Editar" onclick="MascoGestion.editar('mascota', <%= mascota.id %>)">
+                        <i data-lucide="pencil"></i>
+                      </button>
+                      <form method="POST" action="/mascotas/<%= mascota.id %>?_method=DELETE" style="display:inline;"
+                            onsubmit="return confirmarEliminar(event, '<%= mascota.nombre %>')">
+                        <button type="submit" class="btn btn-sm btn-danger" title="Eliminar">
+                          <i data-lucide="trash-2"></i>
+                        </button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Paginación -->
+        <% if (totalPaginas > 1) { %>
+          <div class="pagination-wrapper">
+            <div class="pagination-info">
+              Página <%= pagina %> de <%= totalPaginas %> — <%= totalRegistros %> registros en total
+            </div>
+            <div class="pagination">
+              <% if (pagina > 1) { %>
+                <a href="/mascotas?pagina=<%= pagina - 1 %>&busqueda=<%= busqueda %>" class="page-link">
+                  <i data-lucide="chevron-left"></i>
+                </a>
+              <% } %>
+
+              <% for (let i = Math.max(1, pagina - 2); i <= Math.min(totalPaginas, pagina + 2); i++) { %>
+                <a href="/mascotas?pagina=<%= i %>&busqueda=<%= busqueda %>"
+                   class="page-link <%= i === pagina ? 'active' : '' %>">
+                  <%= i %>
+                </a>
+              <% } %>
+
+              <% if (pagina < totalPaginas) { %>
+                <a href="/mascotas?pagina=<%= pagina + 1 %>&busqueda=<%= busqueda %>" class="page-link">
+                  <i data-lucide="chevron-right"></i>
+                </a>
+              <% } %>
+            </div>
+          </div>
+        <% } %>
+      <% } %>
+    </div>
+  </div>
+
+
+<script>
+  function confirmarEliminar(event, nombre) {
+    event.preventDefault();
+    const form = event.target;
+    Swal.fire({
+      title: '¿Eliminar mascota?',
+      text: `Se eliminará a "${nombre}". Esta acción no se puede deshacer.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+      background: '#1e293b',
+      color: '#f8fafc',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        form.submit();
+      }
+    });
+    return false;
+  }
+</script>
+
+<%- include('../partials/modals/mascota-crear') %>
+<script src="/js/mascota-razas.js"></script>
+<script>
+  initMascotaRazasForm('modal-mascota-especie', 'modal-mascota-raza');
+  initMascotaFotoPreview('modal-mascota-foto', 'modal-mascota-foto-preview', 'modal-mascota-foto-img');
+</script>
+
+<%- include('../partials/footer') %>

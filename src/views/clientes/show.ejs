@@ -1,0 +1,174 @@
+<%- include('../partials/head', { title: title }) %>
+<%- include('../partials/sidebar') %>
+
+
+  <!-- Breadcrumb -->
+  <div class="page-header">
+    <div class="page-header-left">
+      <nav class="breadcrumb">
+        <a href="/clientes" class="breadcrumb-link">Clientes</a>
+        <span class="breadcrumb-sep">/</span>
+        <span><%= cliente.nombreCompleto %></span>
+      </nav>
+    </div>
+    <div class="page-header-right">
+      <a href="/clientes/<%= cliente.id %>/editar" class="btn btn-warning">
+        <i data-lucide="pencil"></i>
+        Editar
+      </a>
+      <a href="/clientes" class="btn btn-outline">
+        <i data-lucide="arrow-left"></i>
+        Volver
+      </a>
+    </div>
+  </div>
+
+  <!-- Detalle del cliente -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <span class="card-title">
+        <i data-lucide="user"></i>
+        Información del Cliente
+      </span>
+    </div>
+    <div class="card-body">
+      <div class="detail-grid">
+
+        <div class="detail-item">
+          <span class="detail-label">Nombre Completo</span>
+          <span class="detail-value fw-semibold"><%= cliente.nombreCompleto %></span>
+        </div>
+
+        <div class="detail-item">
+          <span class="detail-label">DNI</span>
+          <span class="detail-value"><%= cliente.dni || '—' %></span>
+        </div>
+
+        <div class="detail-item">
+          <span class="detail-label">Teléfono</span>
+          <span class="detail-value"><%= cliente.telefono %></span>
+        </div>
+
+        <div class="detail-item">
+          <span class="detail-label">Correo Electrónico</span>
+          <span class="detail-value"><%= cliente.correo || '—' %></span>
+        </div>
+
+        <div class="detail-item" style="grid-column: 1 / -1;">
+          <span class="detail-label">Dirección</span>
+          <span class="detail-value"><%= cliente.direccion %></span>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Mascotas del cliente -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <span class="card-title">
+        <i data-lucide="heart"></i>
+        Mascotas
+        <span class="badge badge-info"><%= cliente.mascotas ? cliente.mascotas.length : 0 %></span>
+      </span>
+    </div>
+    <div class="card-body p-0">
+      <% if (!cliente.mascotas || cliente.mascotas.length === 0) { %>
+        <div class="empty-state">
+          <i data-lucide="heart-off"></i>
+          <p>Este cliente no tiene mascotas registradas.</p>
+        </div>
+      <% } else { %>
+        <div class="table-responsive">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Nombre</th>
+                <th>Especie / Raza</th>
+                <th class="text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% cliente.mascotas.forEach((mascota, index) => { %>
+                <tr>
+                  <td><%= index + 1 %></td>
+                  <td class="fw-semibold"><%= mascota.nombre %></td>
+                  <td>
+                    <% if (mascota.raza) { %>
+                      <%= mascota.raza.nombre %>
+                    <% } else { %>
+                      —
+                    <% } %>
+                  </td>
+                  <td class="text-center">
+                    <a href="/mascotas/<%= mascota.id %>" class="btn btn-sm btn-info" title="Ver mascota">
+                      <i data-lucide="eye"></i>
+                    </a>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Citas del cliente -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">
+        <i data-lucide="calendar"></i>
+        Citas
+        <span class="badge badge-info"><%= citas.length %></span>
+      </span>
+    </div>
+    <div class="card-body p-0">
+      <% if (citas.length === 0) { %>
+        <div class="empty-state">
+          <i data-lucide="calendar-x"></i>
+          <p>Este cliente no tiene citas registradas.</p>
+        </div>
+      <% } else { %>
+        <div class="table-responsive">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Mascota</th>
+                <th>Fecha</th>
+                <th>Hora</th>
+                <th>Servicio</th>
+                <th class="text-center">Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% citas.forEach((cita, index) => { %>
+                <tr>
+                  <td><%= index + 1 %></td>
+                  <td><%= cita.mascota ? cita.mascota.nombre : '—' %></td>
+                  <td><%= cita.fecha ? new Date(cita.fecha).toLocaleDateString('es-PE') : '—' %></td>
+                  <td><%= cita.hora ? cita.hora.substring(0, 5) : '—' %></td>
+                  <td><%= cita.servicio ? cita.servicio.nombre : '—' %></td>
+                  <td class="text-center">
+                    <%
+                      let badgeClass = 'badge-secondary';
+                      if (cita.estado === 'PENDIENTE') badgeClass = 'badge-warning';
+                      else if (cita.estado === 'CONFIRMADA') badgeClass = 'badge-info';
+                      else if (cita.estado === 'ATENDIDA') badgeClass = 'badge-success';
+                      else if (cita.estado === 'CANCELADA') badgeClass = 'badge-danger';
+                    %>
+                    <span class="badge <%= badgeClass %>"><%= cita.estado %></span>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+
+<%- include('../partials/footer') %>

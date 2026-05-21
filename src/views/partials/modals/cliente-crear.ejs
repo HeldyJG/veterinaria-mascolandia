@@ -1,0 +1,29 @@
+<%- include('../modal-start', { modalId: 'modal-crear-cliente', modalTitle: 'Registrar nuevo cliente', modalIcon: 'user-plus' }) %>
+<form method="POST" action="/clientes" novalidate
+      data-ajax-modal="true" data-modal-id="modal-crear-cliente">
+  <div class="form-group">
+    <label for="modal-cliente-nombre" class="form-label">Nombre completo <span class="text-danger">*</span></label>
+    <input type="text" id="modal-cliente-nombre" name="nombreCompleto" class="form-control" maxlength="150" required>
+  </div>
+  <div class="form-group">
+    <label for="modal-cliente-dni" class="form-label">DNI</label>
+    <input type="text" id="modal-cliente-dni" name="dni" class="form-control" maxlength="20">
+  </div>
+  <div class="form-group">
+    <label for="modal-cliente-direccion" class="form-label">Dirección <span class="text-danger">*</span></label>
+    <input type="text" id="modal-cliente-direccion" name="direccion" class="form-control" maxlength="200" required>
+  </div>
+  <div class="form-group">
+    <label for="modal-cliente-telefono" class="form-label">Teléfono <span class="text-danger">*</span></label>
+    <input type="text" id="modal-cliente-telefono" name="telefono" class="form-control" maxlength="20" required>
+  </div>
+  <div class="form-group">
+    <label for="modal-cliente-correo" class="form-label">Correo electrónico</label>
+    <input type="email" id="modal-cliente-correo" name="correo" class="form-control" maxlength="150">
+  </div>
+  <div class="form-actions">
+    <button type="button" class="btn btn-outline" data-modal-close="modal-crear-cliente">Cancelar</button>
+    <button type="submit" class="btn btn-primary"><i data-lucide="save"></i> Registrar</button>
+  </div>
+</form>
+<%- include('../modal-end') %>

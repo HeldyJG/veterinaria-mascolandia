@@ -1,0 +1,77 @@
+<%- include('../modal-start', { modalId: 'modal-crear-venta', modalTitle: 'Nueva venta — Punto de venta', modalIcon: 'shopping-cart', modalSize: 'modal-full' }) %>
+<form id="form-venta-modal" action="/ventas" method="POST">
+  <input type="hidden" name="productos" id="productos-json-modal" value="[]">
+  <div class="pos-layout">
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-header">
+        <span class="card-title"><i data-lucide="search"></i> Buscar producto</span>
+      </div>
+      <div class="card-body">
+        <input type="text" id="busqueda-producto-modal" class="form-control" placeholder="Nombre o código (mín. 2 caracteres)..." autocomplete="off">
+        <div id="resultados-productos-modal" class="pos-resultados"></div>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-header">
+        <span class="card-title"><i data-lucide="shopping-cart"></i> Carrito</span>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th class="text-end">Precio</th>
+                <th class="text-center">Cant.</th>
+                <th class="text-end">Subtotal</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="carrito-body-modal"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card-body" style="border-top:1px solid var(--border-color);">
+        <div class="pos-total-row">
+          <span>Total</span>
+          <strong id="total-venta-modal">S/. 0.00</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="detail-grid" style="margin-top:1rem;">
+    <div class="form-group">
+      <label class="form-label" for="tipoComprobante-modal">Comprobante</label>
+      <select name="tipoComprobante" id="tipoComprobante-modal" class="form-control" required>
+        <option value="TICKET">Ticket</option>
+        <option value="BOLETA">Boleta</option>
+        <option value="FACTURA">Factura</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="metodoPago-modal">Pago</label>
+      <select name="metodoPago" id="metodoPago-modal" class="form-control" required>
+        <option value="EFECTIVO">Efectivo</option>
+        <option value="TARJETA">Tarjeta</option>
+        <option value="YAPE">Yape</option>
+        <option value="PLIN">Plin</option>
+      </select>
+    </div>
+    <div class="form-group" id="cliente-group-modal">
+      <label class="form-label" for="idCliente-modal">Cliente</label>
+      <select name="idCliente" id="idCliente-modal" class="form-control">
+        <option value="">— Cliente general —</option>
+        <% (clientes || []).forEach(c => { %>
+          <option value="<%= c.id %>"><%= c.nombreCompleto %></option>
+        <% }) %>
+      </select>
+    </div>
+  </div>
+  <div class="form-actions">
+    <button type="button" class="btn btn-outline" data-modal-close="modal-crear-venta">Cancelar</button>
+    <button type="submit" class="btn btn-primary">
+      <i data-lucide="check-circle"></i> Completar venta
+    </button>
+  </div>
+</form>
+<%- include('../modal-end') %>

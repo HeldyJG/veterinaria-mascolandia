@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <%- include('../partials/theme-init') %>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Iniciar Sesión | Mascolandia</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="login-body">
+
+  <button type="button" class="theme-toggle theme-toggle-login" data-theme-toggle aria-label="Cambiar tema">
+    <i data-theme-icon data-lucide="sun"></i>
+    <span class="theme-toggle-label" data-theme-label>Claro</span>
+  </button>
+
+  <div class="login-container">
+    <div class="login-logo">
+      <i data-lucide="paw-print"></i>
+      Masco<span>landia</span>
+    </div>
+    <div class="login-subtitle">Sistema Integrado de Gestión Veterinaria</div>
+
+    <form action="/auth/login" method="POST">
+      <!-- Input de Usuario -->
+      <div class="form-group">
+        <label for="username" class="form-label">Usuario</label>
+        <div class="input-wrapper">
+          <i data-lucide="user" class="input-icon"></i>
+          <input type="text" id="username" name="username" class="form-control" placeholder="Ingrese su usuario" required autocomplete="username">
+        </div>
+      </div>
+
+      <!-- Input de Clave -->
+      <div class="form-group">
+        <label for="password" class="form-label">Contraseña</label>
+        <div class="input-wrapper">
+          <i data-lucide="lock" class="input-icon"></i>
+          <input type="password" id="password" name="password" class="form-control" placeholder="Ingrese su contraseña" required autocomplete="current-password">
+        </div>
+      </div>
+
+      <button type="submit" class="btn-primary">
+        <span>Ingresar al Portal</span>
+        <i data-lucide="arrow-right"></i>
+      </button>
+    </form>
+  </div>
+
+  <script src="/js/theme.js"></script>
+  <script>
+    lucide.createIcons();
+  </script>
+
+  <!-- SweetAlert2 Flash Messages Handler -->
+  <% if (typeof mensajes !== 'undefined') { %>
+    <% if (mensajes.success && mensajes.success.length > 0) { %>
+      <script>
+        Swal.fire({
+          icon: 'success',
+          title: '¡Operación Exitosa!',
+          text: '<%= mensajes.success %>',
+          background: '#1e293b',
+          color: '#f8fafc',
+          confirmButtonColor: '#6366f1',
+          timer: 3000,
+          timerProgressBar: true
+        });
+      </script>
+    <% } %>
+    
+    <% if (mensajes.error && mensajes.error.length > 0) { %>
+      <script>
+        Swal.fire({
+          icon: 'error',
+          title: 'Credenciales Incorrectas',
+          text: '<%= mensajes.error %>',
+          background: '#1e293b',
+          color: '#f8fafc',
+          confirmButtonColor: '#6366f1',
+          timer: 4000,
+          timerProgressBar: true
+        });
+      </script>
+    <% } %>
+  <% } %>
+
+</body>
+</html>

@@ -1,0 +1,69 @@
+<form method="POST" action="/citas/<%= cita.id %>?_method=PUT" novalidate>
+  <input type="hidden" name="returnTo" value="list">
+  <div class="form-group">
+    <label for="modal-edit-cita-mascota" class="form-label">Mascota <span class="text-danger">*</span></label>
+    <select id="modal-edit-cita-mascota" name="idMascota" class="form-control" required>
+      <option value="">— Seleccione —</option>
+      <% (mascotas || []).forEach(m => { %>
+        <option value="<%= m.id %>" <%= cita.idMascota == m.id ? 'selected' : '' %>>
+          <%= m.nombre %><% if (m.cliente) { %> — <%= m.cliente.nombreCompleto %><% } %>
+        </option>
+      <% }) %>
+    </select>
+  </div>
+  <div class="form-row-2">
+    <div class="form-group">
+      <label for="modal-edit-cita-vet" class="form-label">Veterinario <span class="text-danger">*</span></label>
+      <select id="modal-edit-cita-vet" name="idUsuario" class="form-control" required>
+        <option value="">— Seleccione —</option>
+        <% (usuarios || []).forEach(u => { %>
+          <option value="<%= u.id %>" <%= cita.idUsuario == u.id ? 'selected' : '' %>><%= u.nombre %></option>
+        <% }) %>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="modal-edit-cita-servicio" class="form-label">Servicio <span class="text-danger">*</span></label>
+      <select id="modal-edit-cita-servicio" name="idServicio" class="form-control" required>
+        <option value="">— Seleccione —</option>
+        <% (servicios || []).forEach(s => { %>
+          <option value="<%= s.id %>" <%= cita.idServicio == s.id ? 'selected' : '' %>><%= s.nombre %></option>
+        <% }) %>
+      </select>
+    </div>
+  </div>
+  <div class="form-row-2">
+    <div class="form-group">
+      <label for="modal-edit-cita-fecha" class="form-label">Fecha <span class="text-danger">*</span></label>
+      <input type="date" id="modal-edit-cita-fecha" name="fecha" class="form-control" value="<%= cita.fecha %>" required>
+    </div>
+    <div class="form-group">
+      <label for="modal-edit-cita-hora" class="form-label">Hora <span class="text-danger">*</span></label>
+      <input type="time" id="modal-edit-cita-hora" name="hora" class="form-control" value="<%= cita.hora ? cita.hora.substring(0, 5) : '' %>" required>
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="modal-edit-cita-turno" class="form-label">Turno <span class="text-danger">*</span></label>
+    <select id="modal-edit-cita-turno" name="turno" class="form-control" required>
+      <option value="MANANA" <%= cita.turno === 'MANANA' ? 'selected' : '' %>>Mañana</option>
+      <option value="TARDE" <%= cita.turno === 'TARDE' ? 'selected' : '' %>>Tarde</option>
+    </select>
+  </div>
+  <div class="form-group">
+    <label for="modal-edit-cita-estado" class="form-label">Estado</label>
+    <select id="modal-edit-cita-estado" name="estado" class="form-control">
+      <option value="PENDIENTE" <%= cita.estado === 'PENDIENTE' ? 'selected' : '' %>>Pendiente</option>
+      <option value="CONFIRMADA" <%= cita.estado === 'CONFIRMADA' ? 'selected' : '' %>>Confirmada</option>
+      <option value="ATENDIDA" <%= cita.estado === 'ATENDIDA' ? 'selected' : '' %>>Atendida</option>
+      <option value="CANCELADA" <%= cita.estado === 'CANCELADA' ? 'selected' : '' %>>Cancelada</option>
+      <option value="EN_ESPERA" <%= cita.estado === 'EN_ESPERA' ? 'selected' : '' %>>En espera</option>
+    </select>
+  </div>
+  <div class="form-group">
+    <label for="modal-edit-cita-motivo" class="form-label">Motivo / detalle</label>
+    <textarea id="modal-edit-cita-motivo" name="motivoDetalle" class="form-control" rows="2" maxlength="500"><%= cita.motivoDetalle || '' %></textarea>
+  </div>
+  <div class="form-actions">
+    <button type="button" class="btn btn-outline" data-modal-close="modal-gestion">Cancelar</button>
+    <button type="submit" class="btn btn-primary"><i data-lucide="save"></i> Guardar cambios</button>
+  </div>
+</form>
