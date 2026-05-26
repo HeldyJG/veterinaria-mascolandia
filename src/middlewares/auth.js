@@ -165,6 +165,10 @@ function denegarAcceso(req, res, mensaje) {
   }
 
   req.flash('error', mensaje);
+  // Evitar loop: si ya estamos en /dashboard redirigir al login
+  if (ruta === '/dashboard' || ruta.startsWith('/dashboard/')) {
+    return res.redirect('/auth/login');
+  }
   return res.redirect('/dashboard');
 }
 

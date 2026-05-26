@@ -50,7 +50,7 @@ app.use(
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 días
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production', // HTTPS en producción
-      sameSite: process.env.NODE_ENV === 'production' ? 'lax' : false,
+      sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'lax',
     },
   })
 );
