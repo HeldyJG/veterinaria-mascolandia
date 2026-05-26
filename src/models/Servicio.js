@@ -20,11 +20,6 @@ const Servicio = sequelize.define('Servicio', {
     allowNull: false,
     defaultValue: 0.00,
   },
-  duracionMinutos: {
-    type: DataTypes.INTEGER,
-    allowNull: true,
-    field: 'duracion_minutos',
-  },
   estado: {
     type: DataTypes.INTEGER,
     allowNull: false,

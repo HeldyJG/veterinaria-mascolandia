@@ -91,7 +91,6 @@ class ServicioController {
         nombre: nombre.trim(),
         descripcion: descripcion ? descripcion.trim() : null,
         precio: parseFloat(precio),
-        duracionMinutos: duracionMinutos ? parseInt(duracionMinutos, 10) : null,
         estado: 1,
       });
 
@@ -180,7 +179,6 @@ class ServicioController {
         nombre: nombre.trim(),
         descripcion: descripcion ? descripcion.trim() : null,
         precio: parseFloat(precio),
-        duracionMinutos: duracionMinutos ? parseInt(duracionMinutos, 10) : null,
       });
 
       req.flash('success', 'Servicio actualizado correctamente.');
