@@ -1,0 +1,106 @@
+<%- include('../partials/head', { title: title }) %>
+<%- include('../partials/sidebar') %>
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="page-header-left">
+      <nav class="breadcrumb">
+        <a href="/mascotas" class="breadcrumb-link">Mascotas</a>
+        <span class="breadcrumb-sep">/</span>
+        <a href="/mascotas/<%= mascota.id %>" class="breadcrumb-link"><%= mascota.nombre %></a>
+        <span class="breadcrumb-sep">/</span>
+        <span>Historial Clínico</span>
+      </nav>
+    </div>
+    <div class="page-header-right">
+      <a href="/historial-clinico/crear?idMascota=<%= mascota.id %>" class="btn btn-primary">
+        <i data-lucide="file-plus"></i> Nuevo Registro
+      </a>
+      <a href="/mascotas/<%= mascota.id %>" class="btn btn-outline">
+        <i data-lucide="arrow-left"></i> Volver
+      </a>
+    </div>
+  </div>
+
+  <!-- Info de la mascota -->
+  <div class="card mb-4">
+    <div class="card-body" style="display:flex; align-items:center; gap:1rem;">
+      <div style="width:56px;height:56px;border-radius:50%;background:var(--color-primary-light,#e0e7ff);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <i data-lucide="heart" style="width:28px;height:28px;color:var(--color-primary,#6366f1);"></i>
+      </div>
+      <div>
+        <div class="fw-semibold" style="font-size:1.1rem;"><%= mascota.nombre %></div>
+        <div class="text-muted" style="font-size:0.875rem;">
+          <% if (mascota.raza) { %><%= mascota.raza.nombre %> — <% } %>
+          <% if (mascota.cliente) { %>Dueño: <%= mascota.cliente.nombreCompleto %><% } %>
+        </div>
+      </div>
+      <div style="margin-left:auto;">
+        <span class="badge badge-info"><%= historiales.length %> registro(s)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lista de historiales -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Historial Clínico Completo</span>
+    </div>
+    <div class="card-body p-0">
+      <% if (historiales.length === 0) { %>
+        <div class="empty-state">
+          <i data-lucide="file-x"></i>
+          <p>No hay registros clínicos para esta mascota.</p>
+          <a href="/historial-clinico/crear?idMascota=<%= mascota.id %>" class="btn btn-primary">
+            Registrar primera consulta
+          </a>
+        </div>
+      <% } else { %>
+        <div class="table-responsive">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Veterinario</th>
+                <th>Motivo</th>
+                <th>Diagnóstico</th>
+                <th>Peso</th>
+                <th>Temp.</th>
+                <th class="text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% historiales.forEach(h => { %>
+                <tr>
+                  <td>
+                    <span class="fw-semibold">
+                      <%= new Date(h.fechaRegistro).toLocaleDateString('es-PE') %>
+                    </span>
+                    <div class="text-muted" style="font-size:0.75rem;">
+                      <%= new Date(h.fechaRegistro).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' }) %>
+                    </div>
+                  </td>
+                  <td><%= h.usuario ? h.usuario.nombre : '—' %></td>
+                  <td class="text-truncate" style="max-width:180px;" title="<%= h.motivoConsulta || '' %>">
+                    <%= h.motivoConsulta || '—' %>
+                  </td>
+                  <td class="text-truncate" style="max-width:200px;" title="<%= h.diagnostico || '' %>">
+                    <%= h.diagnostico || '—' %>
+                  </td>
+                  <td><%= h.peso ? h.peso + ' kg' : '—' %></td>
+                  <td><%= h.temperatura ? h.temperatura + ' °C' : '—' %></td>
+                  <td class="text-center">
+                    <a href="/historial-clinico/<%= h.id %>" class="btn btn-sm btn-info" title="Ver detalle">
+                      <i data-lucide="eye"></i>
+                    </a>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+<%- include('../partials/footer') %>

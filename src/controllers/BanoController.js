@@ -293,7 +293,14 @@ class BanoController {
       }
 
       const anterior = bano.estado;
-      const nuevo = (anterior === 'FINALIZADO') ? 'EN_PROCESO' : 'FINALIZADO';
+      // Ciclo de estados: PENDIENTE → EN_PROCESO → FINALIZADO → ENTREGADO
+      const siguienteEstado = {
+        'PENDIENTE': 'EN_PROCESO',
+        'EN_PROCESO': 'FINALIZADO',
+        'FINALIZADO': 'ENTREGADO',
+        'ENTREGADO': 'ENTREGADO', // ya no avanza
+      };
+      const nuevo = siguienteEstado[anterior] || 'FINALIZADO';
       
       const mlShampoo = parseFloat(bano.mlShampoo || 0);
       const mlAcond = parseFloat(bano.mlAcondicionador || 0);
@@ -301,12 +308,15 @@ class BanoController {
       const stock = await BanoStock.findByPk(1, { transaction });
       if (stock) {
         if (anterior !== 'FINALIZADO' && nuevo === 'FINALIZADO') {
+          // Al finalizar: descontar stock
           stock.shampooActual = parseFloat(stock.shampooActual) - mlShampoo;
           stock.acondicionadorActual = parseFloat(stock.acondicionadorActual) - mlAcond;
-        } else if (anterior === 'FINALIZADO' && nuevo !== 'FINALIZADO') {
+        } else if (anterior === 'FINALIZADO' && nuevo !== 'FINALIZADO' && nuevo !== 'ENTREGADO') {
+          // Si se revierte de FINALIZADO: devolver stock
           stock.shampooActual = parseFloat(stock.shampooActual) + mlShampoo;
           stock.acondicionadorActual = parseFloat(stock.acondicionadorActual) + mlAcond;
         }
+        // ENTREGADO no modifica stock (ya fue descontado al FINALIZAR)
         await stock.save({ transaction });
       }
 

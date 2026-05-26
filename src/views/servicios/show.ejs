@@ -1,0 +1,52 @@
+<%- include('../partials/head', { title: title }) %>
+<%- include('../partials/sidebar') %>
+
+  <div class="page-header">
+    <div class="page-header-left">
+      <nav class="breadcrumb">
+        <a href="/servicios" class="breadcrumb-link">Servicios</a>
+        <span class="breadcrumb-sep">/</span>
+        <span><%= servicio.nombre %></span>
+      </nav>
+    </div>
+    <div class="page-header-right">
+      <a href="/servicios/<%= servicio.id %>/editar" class="btn btn-warning">
+        <i data-lucide="pencil"></i> Editar
+      </a>
+      <a href="/servicios" class="btn btn-outline">
+        <i data-lucide="arrow-left"></i> Volver
+      </a>
+    </div>
+  </div>
+
+  <div class="card" style="max-width: 600px; margin: 0 auto;">
+    <div class="card-header">
+      <span class="card-title">
+        <i data-lucide="stethoscope"></i>
+        <%= servicio.nombre %>
+      </span>
+    </div>
+    <div class="card-body">
+      <dl style="display:grid; grid-template-columns: 160px 1fr; gap: 0.75rem 1rem;">
+        <dt class="text-muted">Nombre</dt>
+        <dd class="fw-semibold"><%= servicio.nombre %></dd>
+
+        <dt class="text-muted">Precio</dt>
+        <dd class="fw-semibold">S/. <%= parseFloat(servicio.precio).toFixed(2) %></dd>
+
+        <dt class="text-muted">Duración</dt>
+        <dd><%= servicio.duracionMinutos ? servicio.duracionMinutos + ' min' : '—' %></dd>
+
+        <dt class="text-muted">Descripción</dt>
+        <dd><%= servicio.descripcion || '—' %></dd>
+
+        <dt class="text-muted">Total citas</dt>
+        <dd><span class="badge badge-info"><%= totalCitas %></span></dd>
+
+        <dt class="text-muted">Estado</dt>
+        <dd><span class="badge badge-success">Activo</span></dd>
+      </dl>
+    </div>
+  </div>
+
+<%- include('../partials/footer') %>
