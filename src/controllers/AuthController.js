@@ -46,7 +46,7 @@ class AuthController {
         perfilNombre: usuario.perfil ? usuario.perfil.nombre : 'Sin Perfil',
       };
 
-      const permisosOk = await cargarPermisosSesion(req);
+      const permisosOk = await cargarPermisosSesion(req, res);
       if (!permisosOk) {
         req.session.destroy();
         req.flash('error', 'El perfil de su usuario no está configurado correctamente.');

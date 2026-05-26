@@ -133,6 +133,34 @@ class DashboardController {
       );
       const ingresosMesTotal = ingresosVentasMes + ingresosBanosMes + ingresosCitasMes;
 
+      const inicioSeisMeses = inicioDelMes(new Date(hoy.getFullYear(), hoy.getMonth() - 5, 1));
+      const inicioSeisMesesStr = inicioSeisMeses.toISOString().split('T')[0];
+      const finEsteMesStr = finMes.toISOString().split('T')[0];
+
+      const [todasVentas, todosBanos, todasCitas] = await Promise.all([
+        Venta.findAll({
+          attributes: ['total', 'fechaVenta'],
+          where: {
+            estado: 'COMPLETADA',
+            fechaVenta: { [Op.between]: [inicioSeisMeses, finMes] },
+          },
+        }),
+        Bano.findAll({
+          attributes: ['precio', 'fecha'],
+          where: {
+            fecha: { [Op.between]: [inicioSeisMesesStr, finEsteMesStr] },
+          },
+        }),
+        Cita.findAll({
+          attributes: ['fecha'],
+          where: {
+            estado: 'ATENDIDA',
+            fecha: { [Op.between]: [inicioSeisMesesStr, finEsteMesStr] },
+          },
+          include: [{ model: Servicio, as: 'servicio', attributes: ['precio'] }],
+        }),
+      ]);
+
       const ingresosMensuales = [];
       for (let i = 5; i >= 0; i--) {
         const ref = new Date(hoy.getFullYear(), hoy.getMonth() - i, 1);
@@ -141,25 +169,18 @@ class DashboardController {
         const inicioStr = inicio.toISOString().split('T')[0];
         const finStr = fin.toISOString().split('T')[0];
 
-        const [ventasMes, banosMes, citasMes] = await Promise.all([
-          Venta.sum('total', {
-            where: {
-              estado: 'COMPLETADA',
-              fechaVenta: { [Op.between]: [inicio, fin] },
-            },
-          }),
-          Bano.sum('precio', {
-            where: { fecha: { [Op.between]: [inicioStr, finStr] } },
-          }),
-          Cita.findAll({
-            where: {
-              estado: 'ATENDIDA',
-              fecha: { [Op.between]: [inicioStr, finStr] },
-            },
-            include: [{ model: Servicio, as: 'servicio' }],
-          }),
-        ]);
+        const ventasMes = todasVentas
+          .filter(v => {
+            const f = new Date(v.fechaVenta);
+            return f >= inicio && f <= fin;
+          })
+          .reduce((sum, v) => sum + parseFloat(v.total || 0), 0);
 
+        const banosMes = todosBanos
+          .filter(b => b.fecha >= inicioStr && b.fecha <= finStr)
+          .reduce((sum, b) => sum + parseFloat(b.precio || 0), 0);
+
+        const citasMes = todasCitas.filter(c => c.fecha >= inicioStr && c.fecha <= finStr);
         const ingresoCitas = citasMes.reduce(
           (sum, c) => sum + parseFloat(c.servicio ? c.servicio.precio : 0),
           0
@@ -167,9 +188,9 @@ class DashboardController {
 
         ingresosMensuales.push({
           label: `${MESES_ES[ref.getMonth()]} ${ref.getFullYear()}`,
-          ventas: parseFloat(ventasMes || 0),
-          otros: parseFloat(banosMes || 0) + ingresoCitas,
-          total: parseFloat(ventasMes || 0) + parseFloat(banosMes || 0) + ingresoCitas,
+          ventas: ventasMes,
+          otros: banosMes + ingresoCitas,
+          total: ventasMes + banosMes + ingresoCitas,
         });
       }
 

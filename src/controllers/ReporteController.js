@@ -200,7 +200,10 @@ class ReporteController {
 
     const citas = await Cita.findAll({
       where: { estado: 'ATENDIDA', fecha: { [Op.between]: [fechaInicio, fechaFin] } },
-      include: [{ model: Mascota, as: 'mascota', include: [{ model: Cliente, as: 'cliente' }] }],
+      include: [
+        { model: Mascota, as: 'mascota', include: [{ model: Cliente, as: 'cliente' }] },
+        { model: Servicio, as: 'servicio' }
+      ],
     });
 
     const banos = await Bano.findAll({

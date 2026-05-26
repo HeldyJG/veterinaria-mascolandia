@@ -8,7 +8,7 @@ class ProveedorController {
    */
   static async index(req, res) {
     try {
-      const pagina = parseInt(req.query.pagina) || 1;
+      const pagina = parseInt(req.query.pagina, 10) || 1;
       const limite = 20;
       const offset = (pagina - 1) * limite;
       const busqueda = req.query.busqueda || '';

@@ -18,7 +18,7 @@ class HistorialClinicoController {
    */
   static async index(req, res) {
     try {
-      const pagina = parseInt(req.query.pagina) || 1;
+      const pagina = parseInt(req.query.pagina, 10) || 1;
       const busqueda = req.query.busqueda ? req.query.busqueda.trim() : '';
       const fechaDesde = req.query.fechaDesde || '';
       const fechaHasta = req.query.fechaHasta || '';

@@ -11,7 +11,7 @@ class ServicioController {
    */
   static async index(req, res) {
     try {
-      const pagina = parseInt(req.query.pagina) || 1;
+      const pagina = parseInt(req.query.pagina, 10) || 1;
       const busqueda = req.query.busqueda ? req.query.busqueda.trim() : '';
       const offset = (pagina - 1) * REGISTROS_POR_PAGINA;
 

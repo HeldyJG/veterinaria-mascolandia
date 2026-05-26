@@ -24,7 +24,7 @@ class CitaController {
    */
   static async index(req, res) {
     try {
-      const pagina = parseInt(req.query.pagina) || 1;
+      const pagina = parseInt(req.query.pagina, 10) || 1;
       const busqueda = req.query.busqueda ? req.query.busqueda.trim() : '';
       const estado = req.query.estado || '';
       const fecha = req.query.fecha || '';
@@ -130,10 +130,27 @@ class CitaController {
     try {
       const { idMascota, idUsuario, idServicio, fecha, hora, turno, motivoDetalle } = req.body;
 
+      // Validar existencia de Mascota, Usuario y Servicio
+      const [mascota, usuario, servicio] = await Promise.all([
+        Mascota.findOne({ where: { id: parseInt(idMascota, 10), estado: 1 } }),
+        Usuario.findOne({ where: { id: parseInt(idUsuario, 10), estado: 1 } }),
+        Servicio.findOne({ where: { id: parseInt(idServicio, 10), estado: 1 } }),
+      ]);
+
+      if (!mascota) {
+        throw new Error('La mascota seleccionada no es válida o no existe.');
+      }
+      if (!usuario) {
+        throw new Error('El veterinario/usuario seleccionado no es válido o no existe.');
+      }
+      if (!servicio) {
+        throw new Error('El servicio seleccionado no es válido o no existe.');
+      }
+
       await Cita.create({
-        idMascota: parseInt(idMascota),
-        idUsuario: parseInt(idUsuario),
-        idServicio: parseInt(idServicio),
+        idMascota: parseInt(idMascota, 10),
+        idUsuario: parseInt(idUsuario, 10),
+        idServicio: parseInt(idServicio, 10),
         fecha,
         hora,
         turno,
@@ -150,11 +167,15 @@ class CitaController {
     } catch (error) {
       console.error('Error al crear cita:', error);
 
+      const errorMsg = error.message.includes('válida o no existe') || error.message.includes('seleccionado') 
+        ? error.message 
+        : 'Error al programar la cita. Intente nuevamente.';
+
       if (isAjax) {
-        return res.status(500).json({ success: false, errors: ['Error al programar la cita. Intente nuevamente.'] });
+        return res.status(500).json({ success: false, errors: [errorMsg] });
       }
 
-      req.flash('error', 'Error al programar la cita. Intente nuevamente.');
+      req.flash('error', errorMsg);
       res.redirect(buildCitaErrorRedirect(req.body));
     }
   }
@@ -276,10 +297,27 @@ class CitaController {
         return res.redirect('/citas');
       }
 
+      // Validar existencia de Mascota, Usuario y Servicio
+      const [mascota, usuario, servicio] = await Promise.all([
+        Mascota.findOne({ where: { id: parseInt(idMascota, 10), estado: 1 } }),
+        Usuario.findOne({ where: { id: parseInt(idUsuario, 10), estado: 1 } }),
+        Servicio.findOne({ where: { id: parseInt(idServicio, 10), estado: 1 } }),
+      ]);
+
+      if (!mascota) {
+        throw new Error('La mascota seleccionada no es válida o no existe.');
+      }
+      if (!usuario) {
+        throw new Error('El veterinario/usuario seleccionado no es válido o no existe.');
+      }
+      if (!servicio) {
+        throw new Error('El servicio seleccionado no es válido o no existe.');
+      }
+
       await cita.update({
-        idMascota: parseInt(idMascota),
-        idUsuario: parseInt(idUsuario),
-        idServicio: parseInt(idServicio),
+        idMascota: parseInt(idMascota, 10),
+        idUsuario: parseInt(idUsuario, 10),
+        idServicio: parseInt(idServicio, 10),
         fecha,
         hora,
         turno,
@@ -291,7 +329,10 @@ class CitaController {
       redirectAfterSave(req, res, '/citas', `/citas/${id}`);
     } catch (error) {
       console.error('Error al actualizar cita:', error);
-      req.flash('error', 'Error al actualizar la cita. Intente nuevamente.');
+      const errorMsg = error.message.includes('válida o no existe') || error.message.includes('seleccionado')
+        ? error.message
+        : 'Error al actualizar la cita. Intente nuevamente.';
+      req.flash('error', errorMsg);
       res.redirect('back');
     }
   }

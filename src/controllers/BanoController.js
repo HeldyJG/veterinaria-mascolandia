@@ -34,12 +34,14 @@ class BanoController {
 
       let stockData = stock;
       if (!stockData) {
-        stockData = await BanoStock.create({
-          id: 1,
-          acondicionadorActual: 3785.41,
-          acondicionadorMax: 3785.41,
-          shampooActual: 3785.41,
-          shampooMax: 3785.41,
+        [stockData] = await BanoStock.findOrCreate({
+          where: { id: 1 },
+          defaults: {
+            acondicionadorActual: 3785.41,
+            acondicionadorMax: 3785.41,
+            shampooActual: 3785.41,
+            shampooMax: 3785.41,
+          },
         });
       }
 
@@ -118,13 +120,16 @@ class BanoController {
       let bano;
       let stock = await BanoStock.findByPk(1, { transaction });
       if (!stock) {
-        stock = await BanoStock.create({
-          id: 1,
-          acondicionadorActual: 3785.41,
-          acondicionadorMax: 3785.41,
-          shampooActual: 3785.41,
-          shampooMax: 3785.41,
-        }, { transaction });
+        [stock] = await BanoStock.findOrCreate({
+          where: { id: 1 },
+          defaults: {
+            acondicionadorActual: 3785.41,
+            acondicionadorMax: 3785.41,
+            shampooActual: 3785.41,
+            shampooMax: 3785.41,
+          },
+          transaction,
+        });
       }
 
       if (!id) {
@@ -145,8 +150,16 @@ class BanoController {
 
         // Si se crea en estado FINALIZADO -> Descontar stock
         if (estado === 'FINALIZADO') {
-          stock.shampooActual = parseFloat(stock.shampooActual) - mlShampoo;
-          stock.acondicionadorActual = parseFloat(stock.acondicionadorActual) - mlAcondicionador;
+          const shampooDisponible = parseFloat(stock.shampooActual);
+          const acondDisponible = parseFloat(stock.acondicionadorActual);
+          if (mlShampoo > shampooDisponible) {
+            throw new Error(`Stock de shampoo insuficiente. Disponible: ${shampooDisponible.toFixed(0)} ml, requerido: ${mlShampoo} ml.`);
+          }
+          if (mlAcondicionador > acondDisponible) {
+            throw new Error(`Stock de acondicionador insuficiente. Disponible: ${acondDisponible.toFixed(0)} ml, requerido: ${mlAcondicionador} ml.`);
+          }
+          stock.shampooActual = shampooDisponible - mlShampoo;
+          stock.acondicionadorActual = acondDisponible - mlAcondicionador;
           await stock.save({ transaction });
         }
       } else {
@@ -179,8 +192,16 @@ class BanoController {
 
         if (!eraFinalizado && esFinalizado) {
           // De otro estado a FINALIZADO -> Descontar nuevo
-          stock.shampooActual = parseFloat(stock.shampooActual) - mlShampoo;
-          stock.acondicionadorActual = parseFloat(stock.acondicionadorActual) - mlAcondicionador;
+          const shampooDisponible = parseFloat(stock.shampooActual);
+          const acondDisponible = parseFloat(stock.acondicionadorActual);
+          if (mlShampoo > shampooDisponible) {
+            throw new Error(`Stock de shampoo insuficiente. Disponible: ${shampooDisponible.toFixed(0)} ml, requerido: ${mlShampoo} ml.`);
+          }
+          if (mlAcondicionador > acondDisponible) {
+            throw new Error(`Stock de acondicionador insuficiente. Disponible: ${acondDisponible.toFixed(0)} ml, requerido: ${mlAcondicionador} ml.`);
+          }
+          stock.shampooActual = shampooDisponible - mlShampoo;
+          stock.acondicionadorActual = acondDisponible - mlAcondicionador;
           await stock.save({ transaction });
         } else if (eraFinalizado && !esFinalizado) {
           // De FINALIZADO a otro -> Devolver previo
@@ -188,10 +209,15 @@ class BanoController {
           stock.acondicionadorActual = parseFloat(stock.acondicionadorActual) + acondPrevio;
           await stock.save({ transaction });
         } else if (eraFinalizado && esFinalizado) {
-          // Ajuste de mililitros
+          // Ajuste de mililitros: si el nuevo consumo es mayor, verificar que haya stock suficiente
           const diffShampoo = mlShampoo - shampooPrevio;
           const diffAcond = mlAcondicionador - acondPrevio;
-          
+          if (diffShampoo > 0 && diffShampoo > parseFloat(stock.shampooActual)) {
+            throw new Error(`Stock de shampoo insuficiente para el ajuste. Disponible: ${parseFloat(stock.shampooActual).toFixed(0)} ml adicionales.`);
+          }
+          if (diffAcond > 0 && diffAcond > parseFloat(stock.acondicionadorActual)) {
+            throw new Error(`Stock de acondicionador insuficiente para el ajuste. Disponible: ${parseFloat(stock.acondicionadorActual).toFixed(0)} ml adicionales.`);
+          }
           stock.shampooActual = parseFloat(stock.shampooActual) - diffShampoo;
           stock.acondicionadorActual = parseFloat(stock.acondicionadorActual) - diffAcond;
           await stock.save({ transaction });
@@ -240,12 +266,14 @@ class BanoController {
     try {
       let stock = await BanoStock.findByPk(1);
       if (!stock) {
-        stock = await BanoStock.create({
-          id: 1,
-          acondicionadorActual: 3785.41,
-          acondicionadorMax: 3785.41,
-          shampooActual: 3785.41,
-          shampooMax: 3785.41,
+        [stock] = await BanoStock.findOrCreate({
+          where: { id: 1 },
+          defaults: {
+            acondicionadorActual: 3785.41,
+            acondicionadorMax: 3785.41,
+            shampooActual: 3785.41,
+            shampooMax: 3785.41,
+          },
         });
       }
 

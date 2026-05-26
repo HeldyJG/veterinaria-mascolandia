@@ -45,7 +45,7 @@ class MascotaController {
    */
   static async index(req, res) {
     try {
-      const pagina = parseInt(req.query.pagina) || 1;
+      const pagina = parseInt(req.query.pagina, 10) || 1;
       const busqueda = req.query.busqueda ? req.query.busqueda.trim() : '';
       const offset = (pagina - 1) * REGISTROS_POR_PAGINA;
 
@@ -340,7 +340,17 @@ class MascotaController {
         return res.redirect('/mascotas');
       }
 
-      await mascota.update({ estado: 0 });
+      // Eliminar foto del disco si existe
+      if (mascota.foto) {
+        const rutaFoto = path.join(__dirname, '../../uploads/fotos/', mascota.foto);
+        try {
+          fs.unlinkSync(rutaFoto);
+        } catch (unlinkError) {
+          console.warn(`No se pudo eliminar la foto de la mascota al desactivarla: ${rutaFoto}`, unlinkError.message);
+        }
+      }
+
+      await mascota.update({ estado: 0, foto: null });
 
       req.flash('success', 'Mascota eliminada correctamente.');
       res.redirect('/mascotas');

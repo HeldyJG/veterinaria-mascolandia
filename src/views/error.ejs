@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <%- include('partials/theme-init') %>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title><%= typeof title !== 'undefined' ? title : 'Error | Mascolandia' %></title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<% if (typeof usuario !== 'undefined' && usuario) { %>
+<body>
+  <%- include('partials/sidebar') %>
+  
+  <div class="empty-page-center" style="min-height: calc(100vh - 120px); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem;">
+    <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 50%; width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; margin-bottom: 2rem; animation: pulse-error 2s infinite;">
+      <i data-lucide="<%= typeof icon !== 'undefined' ? icon : 'alert-triangle' %>" style="width: 50px; height: 50px; color: var(--danger, #ef4444);"></i>
+    </div>
+    
+    <h2 style="font-size: 2.25rem; font-weight: 700; margin-bottom: 1rem; font-family: 'Outfit', sans-serif;">
+      <%= typeof errorTitle !== 'undefined' ? errorTitle : 'Ha ocurrido un error' %>
+    </h2>
+    
+    <p style="color: var(--text-muted); max-width: 500px; font-size: 1.1rem; line-height: 1.6; margin-bottom: 2.5rem; text-align: center;">
+      <%= typeof errorMsg !== 'undefined' ? errorMsg : 'El servidor experimentó un problema temporal o la página no existe.' %>
+    </p>
+
+    <div style="display: flex; gap: 1rem;">
+      <a href="/dashboard" class="btn-primary" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none;">
+        <i data-lucide="home" style="width: 18px; height: 18px;"></i>
+        <span>Volver al Dashboard</span>
+      </a>
+      <button onclick="window.history.back()" class="btn-primary" style="background: var(--secondary); display: flex; align-items: center; gap: 0.5rem; border: none; cursor: pointer; color: var(--text);">
+        <i data-lucide="arrow-left" style="width: 18px; height: 18px;"></i>
+        <span>Regresar</span>
+      </button>
+    </div>
+  </div>
+
+  <style>
+    @keyframes pulse-error {
+      0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+      70% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(239, 68, 68, 0); }
+      100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+  </style>
+
+  <%- include('partials/footer') %>
+<% } else { %>
+<body class="login-body" style="display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 1rem;">
+  <button type="button" class="theme-toggle theme-toggle-login" data-theme-toggle aria-label="Cambiar tema">
+    <i data-theme-icon data-lucide="sun"></i>
+    <span class="theme-toggle-label" data-theme-label>Claro</span>
+  </button>
+
+  <div class="login-container" style="text-align: center; display: flex; flex-direction: column; align-items: center;">
+    <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 50%; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; animation: pulse-error 2s infinite;">
+      <i data-lucide="<%= typeof icon !== 'undefined' ? icon : 'alert-triangle' %>" style="width: 40px; height: 40px; color: var(--danger, #ef4444);"></i>
+    </div>
+    
+    <div class="login-logo" style="margin-bottom: 0.5rem;">
+      Masco<span>landia</span>
+    </div>
+    
+    <h2 style="font-size: 1.75rem; font-weight: 700; margin-bottom: 0.75rem; font-family: 'Outfit', sans-serif; color: var(--text);">
+      <%= typeof errorTitle !== 'undefined' ? errorTitle : 'Ha ocurrido un error' %>
+    </h2>
+    
+    <p style="color: var(--text-muted); max-width: 320px; font-size: 1rem; line-height: 1.5; margin-bottom: 2rem;">
+      <%= typeof errorMsg !== 'undefined' ? errorMsg : 'El servidor experimentó un problema temporal o la página no existe.' %>
+    </p>
+
+    <div style="display: flex; flex-direction: column; gap: 0.75rem; width: 100%;">
+      <a href="/auth/login" class="btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; text-decoration: none;">
+        <i data-lucide="log-in" style="width: 18px; height: 18px;"></i>
+        <span>Ir al Inicio de Sesión</span>
+      </a>
+      <button onclick="window.history.back()" class="btn-primary" style="background: var(--secondary); display: flex; align-items: center; justify-content: center; gap: 0.5rem; border: none; cursor: pointer; color: var(--text);">
+        <i data-lucide="arrow-left" style="width: 18px; height: 18px;"></i>
+        <span>Regresar</span>
+      </button>
+    </div>
+  </div>
+
+  <script src="/js/theme.js"></script>
+  <script>
+    lucide.createIcons();
+  </script>
+  <style>
+    @keyframes pulse-error {
+      0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+      70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
+      100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+  </style>
+</body>
+</html>
+<% } %>
