@@ -141,7 +141,11 @@ function esRutaPublica(path) {
 }
 
 function esRutaLibreAutenticado(path) {
-  return path === '/dashboard' || path.startsWith('/dashboard/');
+  return (
+    path === '/dashboard' ||
+    path.startsWith('/dashboard/') ||
+    path.startsWith('/api/')
+  );
 }
 
 function tieneAccesoRuta(path, permisosRutas) {

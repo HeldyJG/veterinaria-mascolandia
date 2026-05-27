@@ -1,3 +1,4 @@
+const { Op } = require('sequelize');
 const { Raza, Especie, Mascota } = require('../models');
 
 class RazaController {
@@ -134,6 +135,33 @@ class RazaController {
     } catch (error) {
       console.error('Error al obtener razas por especie:', error);
       res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
+  /**
+   * GET /api/razas/search?q=
+   * Busca razas por nombre (autocomplete).
+   */
+  static async search(req, res) {
+    try {
+      const q = req.query.q ? req.query.q.trim() : '';
+
+      const where = { estado: 1 };
+      if (q.length > 0) {
+        where.nombre = { [Op.iLike]: `%${q}%` };
+      }
+
+      const razas = await Raza.findAll({
+        where,
+        limit: 10,
+        order: [['nombre', 'ASC']],
+        attributes: ['id', 'nombre'],
+      });
+
+      return res.json({ success: true, data: razas });
+    } catch (error) {
+      console.error('Error al buscar razas:', error);
+      return res.status(500).json({ success: false, message: error.message });
     }
   }
 }

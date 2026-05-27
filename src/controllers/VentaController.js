@@ -57,7 +57,7 @@ class VentaController {
       if (busqueda) {
         whereClause[Op.or] = [
           { numeroComprobante: { [Op.iLike]: `%${busqueda}%` } },
-          { '$cliente.nombreCompleto$': { [Op.iLike]: `%${busqueda}%` } },
+          { '$cliente.nombre_completo$': { [Op.iLike]: `%${busqueda}%` } },
         ];
       }
 

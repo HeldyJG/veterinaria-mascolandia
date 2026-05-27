@@ -1,7 +1,6 @@
 <%- include('../modal-start', { modalId: 'modal-crear-cita', modalTitle: 'Programar cita', modalIcon: 'calendar-plus', modalSize: 'modal-lg' }) %>
 <% const oldValues = typeof old !== 'undefined' ? old : {}; %>
 <%
-  // Calcular fecha de hoy en zona local (YYYY-MM-DD) sin conversión UTC
   const _now = new Date();
   const _y = _now.getFullYear();
   const _m = String(_now.getMonth() + 1).padStart(2, '0');
@@ -9,43 +8,105 @@
   const todayLocal = `${_y}-${_m}-${_d}`;
 %>
 <form id="form-crear-cita" method="POST" action="/citas" novalidate>
-  <!-- Zona de error dentro del modal -->
   <div id="cita-modal-error" class="alert alert-danger mb-4" role="alert"
        style="display:none; padding:0.9rem 1rem; border-radius:0.5rem; border:1px solid rgba(239,68,68,0.4); background:rgba(239,68,68,0.12); color:#991b1b;">
     <strong>Error:</strong> <span id="cita-modal-error-msg"></span>
   </div>
 
-  <div class="form-group">
-    <label for="modal-cita-mascota" class="form-label">Mascota <span class="text-danger">*</span></label>
-    <select id="modal-cita-mascota" name="idMascota" class="form-control" required>
-      <option value="">— Seleccione —</option>
-      <% (mascotas || []).forEach(m => { %>
-        <option value="<%= m.id %>" <%= String(oldValues.idMascota) === String(m.id) ? 'selected' : '' %>>
-          <%= m.nombre %><% if (m.cliente) { %> — <%= m.cliente.nombreCompleto %><% } %>
-        </option>
-      <% }) %>
-    </select>
+  <!-- MASCOTA con botón Rápido -->
+  <div class="form-group" style="display:flex; gap:0.5rem; align-items:flex-end;">
+    <div class="autocomplete-field" style="flex:1;">
+      <label for="ac-mascota" class="form-label">Mascota <span class="text-danger">*</span></label>
+      <input type="text" id="ac-mascota" class="form-control"
+             placeholder="Buscar mascota o DNI del dueño..."
+             data-ac-url="/api/mascotas/search"
+             data-ac-min="1"
+             data-ac-hidden="idMascota"
+             <%= oldValues.idMascota ? '' : 'required' %>>
+      <input type="hidden" name="idMascota" id="idMascota" value="<%= oldValues.idMascota || '' %>">
+    </div>
+    <button type="button" id="btn-express-cita" class="btn btn-success"
+            title="Registrar cliente y mascota nuevos al instante"
+            style="height:38px; white-space:nowrap; display:flex; align-items:center; gap:0.25rem;">
+      <i data-lucide="plus" style="width:16px;height:16px;"></i>
+      Rápido
+    </button>
   </div>
+
+  <!-- ===== Registro Express (colapsable) ===== -->
+  <div id="express-cita-section" class="card card-express"
+       style="display:none; margin-top:0.75rem; margin-bottom:1rem;
+              border:1px solid rgba(34,197,94,0.3); border-radius:0.5rem;
+              background:rgba(34,197,94,0.04);">
+    <div class="card-body" style="padding:1rem;">
+      <h4 style="margin:0 0 0.75rem; font-size:0.95rem; color:#22c55e; display:flex; align-items:center; gap:0.35rem;">
+        <i data-lucide="zap" style="width:16px;height:16px;"></i>
+        Registro Rápido — Cliente y Mascota nuevos
+      </h4>
+      <div class="form-row-3">
+        <div class="form-group">
+          <label for="express-cliente-dni" class="form-label">DNI del Dueño <span class="text-danger">*</span></label>
+          <input type="text" id="express-cliente-dni" name="dni" class="form-control" maxlength="15" placeholder="Ej. 77476589">
+        </div>
+        <div class="form-group">
+          <label for="express-cliente-nombre" class="form-label">Nombre del Dueño <span class="text-danger">*</span></label>
+          <input type="text" id="express-cliente-nombre" name="nombreCliente" class="form-control" maxlength="150" placeholder="Ej. Juan Pérez">
+        </div>
+        <div class="form-group">
+          <label for="express-cliente-telefono" class="form-label">Celular <span class="text-danger">*</span></label>
+          <input type="text" id="express-cliente-telefono" name="telefono" class="form-control" maxlength="20" placeholder="Ej. 987654321">
+        </div>
+      </div>
+      <div class="form-row-2">
+        <div class="form-group">
+          <label for="express-mascota-nombre" class="form-label">Nombre de la Mascota <span class="text-danger">*</span></label>
+          <input type="text" id="express-mascota-nombre" name="nombreMascota" class="form-control" maxlength="100" placeholder="Ej. Firulais">
+        </div>
+        <div class="autocomplete-field form-group">
+          <label for="ac-express-raza" class="form-label">Raza <span class="text-danger">*</span></label>
+          <input type="text" id="ac-express-raza" class="form-control"
+                 placeholder="Buscar raza..."
+                 data-ac-url="/api/razas/search"
+                 data-ac-min="1"
+                 data-ac-hidden="expressIdRaza">
+          <input type="hidden" name="idRaza" id="expressIdRaza" value="">
+        </div>
+      </div>
+      <div class="form-actions" style="margin-top:0.75rem; padding-top:0.75rem; border-top:1px solid rgba(34,197,94,0.15);">
+        <button type="button" id="btn-express-cancelar" class="btn btn-outline btn-sm">Cancelar</button>
+        <button type="button" id="btn-express-guardar" class="btn btn-success btn-sm">
+          <i data-lucide="zap" style="width:14px;height:14px;"></i>
+          Guardar Cita y Registro
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- VETERINARIO + SERVICIO -->
   <div class="form-row-2">
-    <div class="form-group">
-      <label for="modal-cita-vet" class="form-label">Veterinario <span class="text-danger">*</span></label>
-      <select id="modal-cita-vet" name="idUsuario" class="form-control" required>
-        <option value="">— Seleccione —</option>
-        <% (usuarios || []).forEach(u => { %>
-          <option value="<%= u.id %>" <%= String(oldValues.idUsuario) === String(u.id) ? 'selected' : '' %>><%= u.nombre %></option>
-        <% }) %>
-      </select>
+    <div class="autocomplete-field form-group">
+      <label for="ac-vet" class="form-label">Veterinario <span class="text-danger">*</span></label>
+      <input type="text" id="ac-vet" class="form-control"
+             placeholder="Buscar veterinario..."
+             data-ac-url="/api/usuarios/search"
+             data-ac-min="1"
+             data-ac-hidden="idUsuario"
+             required>
+      <input type="hidden" name="idUsuario" id="idUsuario" value="<%= oldValues.idUsuario || '' %>">
     </div>
-    <div class="form-group">
-      <label for="modal-cita-servicio" class="form-label">Servicio <span class="text-danger">*</span></label>
-      <select id="modal-cita-servicio" name="idServicio" class="form-control" required>
-        <option value="">— Seleccione —</option>
-        <% (servicios || []).forEach(s => { %>
-          <option value="<%= s.id %>" <%= String(oldValues.idServicio) === String(s.id) ? 'selected' : '' %>><%= s.nombre %></option>
-        <% }) %>
-      </select>
+    <div class="autocomplete-field form-group">
+      <label for="ac-servicio" class="form-label">Servicio <span class="text-danger">*</span></label>
+      <input type="text" id="ac-servicio" class="form-control"
+             placeholder="Buscar servicio..."
+             data-ac-url="/api/servicios/search"
+             data-ac-min="1"
+             data-ac-hidden="idServicio"
+             required>
+      <input type="hidden" name="idServicio" id="idServicio" value="<%= oldValues.idServicio || '' %>">
     </div>
   </div>
+
+  <!-- FECHA + HORA -->
   <div class="form-row-2">
     <div class="form-group">
       <label for="modal-cita-fecha" class="form-label">Fecha <span class="text-danger">*</span></label>
@@ -59,6 +120,8 @@
              value="<%= oldValues.hora || '' %>" required>
     </div>
   </div>
+
+  <!-- TURNO -->
   <div class="form-group">
     <label for="modal-cita-turno" class="form-label">Turno <span class="text-danger">*</span></label>
     <select id="modal-cita-turno" name="turno" class="form-control" required>
@@ -67,10 +130,13 @@
       <option value="TARDE"  <%= oldValues.turno === 'TARDE'  ? 'selected' : '' %>>Tarde</option>
     </select>
   </div>
+
+  <!-- MOTIVO -->
   <div class="form-group">
     <label for="modal-cita-motivo" class="form-label">Motivo / detalle</label>
     <textarea id="modal-cita-motivo" name="motivoDetalle" class="form-control" rows="2" maxlength="500"><%= oldValues.motivoDetalle || '' %></textarea>
   </div>
+
   <div class="form-actions">
     <button type="button" class="btn btn-outline" data-modal-close="modal-crear-cita">Cancelar</button>
     <button type="submit" id="btn-submit-cita" class="btn btn-primary">
@@ -80,44 +146,193 @@
 </form>
 <%- include('../modal-end') %>
 
+<style>
+.autocomplete-wrapper .form-control {
+  width: 100%;
+}
+.autocomplete-item:hover {
+  background: #1e3a5f !important;
+}
+.autocomplete-item:first-child {
+  border-radius: 0.5rem 0.5rem 0 0;
+}
+.autocomplete-item:last-child {
+  border-bottom: none !important;
+  border-radius: 0 0 0.5rem 0.5rem;
+}
+
+/* Layout de 3 columnas para DNI + Nombre + Celular */
+.form-row-3 {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1.5fr;
+  gap: 0.75rem;
+}
+@media (max-width: 640px) {
+  .form-row-3 {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+
 <script>
 (function () {
   'use strict';
 
+  // ---- Utilidades ----
+  function showError(msg) {
+    var box = document.getElementById('cita-modal-error');
+    var span = document.getElementById('cita-modal-error-msg');
+    if (!box) return;
+    span.textContent = msg;
+    box.style.display = '';
+    box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function hideError() {
+    var box = document.getElementById('cita-modal-error');
+    if (!box) return;
+    box.style.display = 'none';
+    document.getElementById('cita-modal-error-msg').textContent = '';
+  }
+
+  function setLoading(btn, loading) {
+    if (loading) {
+      btn.disabled = true;
+      btn.dataset.originalHtml = btn.innerHTML;
+      btn.innerHTML = '<i data-lucide="loader-2" style="animation:spin 1s linear infinite;"></i> Guardando…';
+    } else {
+      btn.disabled = false;
+      if (btn.dataset.originalHtml) {
+        btn.innerHTML = btn.dataset.originalHtml;
+        delete btn.dataset.originalHtml;
+      }
+    }
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+  }
+
+  function successReload(msg) {
+    if (window.MascoModal) MascoModal.close('modal-crear-cita');
+    if (typeof Swal !== 'undefined') {
+      Swal.fire({
+        icon: 'success',
+        title: 'Operación exitosa',
+        text: msg || 'Registro guardado correctamente.',
+        timer: 2000,
+        showConfirmButton: false,
+        background: '#1e293b',
+        color: '#f8fafc',
+      }).then(function () { window.location.reload(); });
+    } else {
+      window.location.reload();
+    }
+  }
+
+  // ---- Inicializar Autocompletes ----
+  var autocompletes = [];
+
+  function initAutocomplete(inputId) {
+    var input = document.getElementById(inputId);
+    if (!input || input.dataset.acInit) return;
+    input.dataset.acInit = '1';
+
+    var url = input.getAttribute('data-ac-url');
+    var hiddenId = input.getAttribute('data-ac-hidden');
+    var min = parseInt(input.getAttribute('data-ac-min'), 10) || 2;
+    var hidden = document.getElementById(hiddenId);
+    if (!url || !hidden) return;
+
+    if (hidden.value) {
+      // Ya hay un valor precargado (desde oldValues) — mostrar el label luego en initAcPreload
+    }
+
+    var ac = new MascoAutocomplete(input, {
+      fetchUrl: url,
+      hiddenInput: hidden,
+      minChars: min,
+      renderItem: function (item) {
+        if (item.cliente) {
+          // Mascota: mostrar "Nombre — Dueño (DNI)"
+          var d = item.cliente.dni ? ' (' + item.cliente.dni + ')' : '';
+          return item.nombre + ' — ' + item.cliente.nombreCompleto + d;
+        }
+        if (item.precio) {
+          // Servicio: mostrar "Nombre - S/.precio"
+          return item.nombre + ' - S/.' + parseFloat(item.precio).toFixed(2);
+        }
+        return item.nombre || '';
+      },
+    });
+
+    autocompletes.push(ac);
+    return ac;
+  }
+
+  // Precargar labels de autocomplete cuando hay oldValues
+  function initAcPreload() {
+    // Mascota
+    var oldMascota = '<%= oldValues.idMascota || '' %>';
+    if (oldMascota) {
+      var mascotas = <%- JSON.stringify(mascotas || []) %>;
+      var found = mascotas.find(function (m) { return String(m.id) === String(oldMascota); });
+      if (found) {
+        var label = found.nombre + ' — ' + (found.cliente ? found.cliente.nombreCompleto : '');
+        var inp = document.getElementById('ac-mascota');
+        var hid = document.getElementById('idMascota');
+        if (inp && hid) { inp.value = label; hid.value = oldMascota; }
+      }
+    }
+    // Veterinario
+    var oldVet = '<%= oldValues.idUsuario || '' %>';
+    if (oldVet) {
+      var usuarios = <%- JSON.stringify(usuarios || []) %>;
+      var foundU = usuarios.find(function (u) { return String(u.id) === String(oldVet); });
+      if (foundU) {
+        var inpV = document.getElementById('ac-vet');
+        var hidV = document.getElementById('idUsuario');
+        if (inpV && hidV) { inpV.value = foundU.nombre; hidV.value = oldVet; }
+      }
+    }
+    // Servicio
+    var oldSrv = '<%= oldValues.idServicio || '' %>';
+    if (oldSrv) {
+      var servicios = <%- JSON.stringify(servicios || []) %>;
+      var foundS = servicios.find(function (s) { return String(s.id) === String(oldSrv); });
+      if (foundS) {
+        var inpT = document.getElementById('ac-servicio');
+        var hidT = document.getElementById('idServicio');
+        if (inpT && hidT) { inpT.value = foundS.nombre; hidT.value = oldSrv; }
+      }
+    }
+  }
+
+  // ---- Formulario normal (Programar) ----
   function initFormCita() {
-    const form = document.getElementById('form-crear-cita');
+    var form = document.getElementById('form-crear-cita');
     if (!form || form.dataset.ajaxBound) return;
     form.dataset.ajaxBound = '1';
 
-    const errorBox = document.getElementById('cita-modal-error');
-    const errorMsg = document.getElementById('cita-modal-error-msg');
-    const submitBtn = document.getElementById('btn-submit-cita');
-
-    function showError(msg) {
-      errorMsg.textContent = msg;
-      errorBox.style.display = '';
-      errorBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-
-    function hideError() {
-      errorBox.style.display = 'none';
-      errorMsg.textContent = '';
-    }
+    var submitBtn = document.getElementById('btn-submit-cita');
 
     form.addEventListener('submit', async function (e) {
       e.preventDefault();
       hideError();
 
-      submitBtn.disabled = true;
-      const originalHtml = submitBtn.innerHTML;
-      submitBtn.innerHTML = '<i data-lucide="loader-2" style="animation:spin 1s linear infinite;"></i> Guardando…';
-      if (typeof lucide !== 'undefined') lucide.createIcons();
+      // Validar que se haya seleccionado algo en autocompletes
+      var idMascota = document.getElementById('idMascota').value;
+      var idUsuario = document.getElementById('idUsuario').value;
+      var idServicio = document.getElementById('idServicio').value;
+
+      if (!idMascota) { showError('Seleccione una mascota válida de la lista.'); return; }
+      if (!idUsuario) { showError('Seleccione un veterinario válido de la lista.'); return; }
+      if (!idServicio) { showError('Seleccione un servicio válido de la lista.'); return; }
+
+      setLoading(submitBtn, true);
 
       try {
-        const data = new FormData(form);
-        const body = new URLSearchParams(data);
+        var data = new FormData(form);
+        var body = new URLSearchParams(data);
 
-        const res = await fetch(form.action, {
+        var res = await fetch(form.action, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -127,46 +342,150 @@
           body: body.toString(),
         });
 
-        const json = await res.json();
+        var json = await res.json();
 
         if (json.success) {
-          // Cerrar modal y recargar la tabla
-          if (window.MascoModal) MascoModal.close('modal-crear-cita');
-          // Mostrar toast de éxito si hay Swal disponible, si no recargar
-          if (typeof Swal !== 'undefined') {
-            Swal.fire({
-              icon: 'success',
-              title: 'Cita programada',
-              text: json.message || 'La cita fue registrada correctamente.',
-              timer: 2000,
-              showConfirmButton: false,
-              background: '#1e293b',
-              color: '#f8fafc',
-            }).then(() => window.location.reload());
-          } else {
-            window.location.reload();
-          }
+          successReload(json.message || 'La cita fue registrada correctamente.');
         } else {
-          const errores = json.errors || ['Error desconocido.'];
+          var errores = json.errors || ['Error desconocido.'];
           showError(errores[0]);
-          submitBtn.disabled = false;
-          submitBtn.innerHTML = originalHtml;
-          if (typeof lucide !== 'undefined') lucide.createIcons();
+          setLoading(submitBtn, false);
         }
       } catch (err) {
         showError('Error de conexión. Intente nuevamente.');
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = originalHtml;
-        if (typeof lucide !== 'undefined') lucide.createIcons();
+        setLoading(submitBtn, false);
       }
     });
   }
 
-  // Inicializar cuando el DOM esté listo
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initFormCita);
-  } else {
+  // ---- Registro Express ----
+  function initExpressCita() {
+    var expressSection = document.getElementById('express-cita-section');
+    var btnToggle = document.getElementById('btn-express-cita');
+    var btnCancel = document.getElementById('btn-express-cancelar');
+    var btnSave = document.getElementById('btn-express-guardar');
+    var mascotaInput = document.getElementById('ac-mascota');
+    var mascotaHidden = document.getElementById('idMascota');
+
+    if (!expressSection || !btnToggle || !btnCancel || !btnSave) return;
+
+    btnToggle.addEventListener('click', function () {
+      var isVisible = expressSection.style.display !== 'none';
+      expressSection.style.display = isVisible ? 'none' : 'block';
+      btnToggle.innerHTML = isVisible
+        ? '<i data-lucide="plus" style="width:16px;height:16px;"></i> Rápido'
+        : '<i data-lucide="x" style="width:16px;height:16px;"></i> Cerrar';
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+
+      if (!isVisible) {
+        // Al abrir express, el autocomplete de mascota deja de ser obligatorio
+        mascotaInput && mascotaInput.removeAttribute('required');
+        mascotaInput && (mascotaInput.disabled = true);
+      } else {
+        mascotaInput && (mascotaInput.required = true);
+        mascotaInput && (mascotaInput.disabled = false);
+      }
+    });
+
+    btnCancel.addEventListener('click', function () {
+      expressSection.style.display = 'none';
+      btnToggle.innerHTML = '<i data-lucide="plus" style="width:16px;height:16px;"></i> Rápido';
+      mascotaInput && (mascotaInput.required = true);
+      mascotaInput && (mascotaInput.disabled = false);
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+      document.getElementById('express-cliente-dni').value = '';
+      document.getElementById('express-cliente-nombre').value = '';
+      document.getElementById('express-cliente-telefono').value = '';
+      document.getElementById('express-mascota-nombre').value = '';
+      document.getElementById('expressIdRaza').value = '';
+      // También limpiar el input visible de la raza
+      var razaInput = document.querySelector('#ac-express-raza');
+      if (razaInput) razaInput.value = '';
+    });
+
+    btnSave.addEventListener('click', async function () {
+      hideError();
+
+      var dni = document.getElementById('express-cliente-dni').value.trim();
+      var nombreCliente = document.getElementById('express-cliente-nombre').value.trim();
+      var telefono = document.getElementById('express-cliente-telefono').value.trim();
+      var nombreMascota = document.getElementById('express-mascota-nombre').value.trim();
+      var idRaza = document.getElementById('expressIdRaza').value;
+      var idUsuario = document.getElementById('idUsuario').value;
+      var idServicio = document.getElementById('idServicio').value;
+      var fecha = document.getElementById('modal-cita-fecha').value;
+      var hora = document.getElementById('modal-cita-hora').value;
+      var turno = document.getElementById('modal-cita-turno').value;
+      var motivoDetalle = document.getElementById('modal-cita-motivo').value.trim();
+
+      if (!dni) { showError('El DNI del dueño es obligatorio.'); return; }
+      if (!nombreCliente) { showError('El nombre del dueño es obligatorio.'); return; }
+      if (!telefono) { showError('El celular es obligatorio.'); return; }
+      if (!nombreMascota) { showError('El nombre de la mascota es obligatorio.'); return; }
+      if (!idRaza) { showError('Seleccione una raza de la lista.'); return; }
+      if (!idUsuario) { showError('Seleccione un veterinario de la lista.'); return; }
+      if (!idServicio) { showError('Seleccione un servicio de la lista.'); return; }
+      if (!fecha) { showError('Seleccione una fecha.'); return; }
+      if (!hora) { showError('Seleccione una hora.'); return; }
+      if (!turno) { showError('Seleccione un turno.'); return; }
+
+      setLoading(btnSave, true);
+
+      try {
+        var payload = new URLSearchParams();
+        payload.append('dni', dni);
+        payload.append('nombreCliente', nombreCliente);
+        payload.append('telefono', telefono);
+        payload.append('nombreMascota', nombreMascota);
+        payload.append('idRaza', idRaza);
+        payload.append('idUsuario', idUsuario);
+        payload.append('idServicio', idServicio);
+        payload.append('fecha', fecha);
+        payload.append('hora', hora);
+        payload.append('turno', turno);
+        if (motivoDetalle) payload.append('motivoDetalle', motivoDetalle);
+
+        var res = await fetch('/api/citas/express', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+          credentials: 'same-origin',
+          body: payload.toString(),
+        });
+
+        var json = await res.json();
+
+        if (json.success) {
+          successReload(json.message || 'Registro exprés completado.');
+        } else {
+          var errores = json.errors || ['Error desconocido.'];
+          showError(errores[0]);
+          setLoading(btnSave, false);
+        }
+      } catch (err) {
+        showError('Error de conexión. Intente nuevamente.');
+        setLoading(btnSave, false);
+      }
+    });
+  }
+
+  // ---- Inicialización global ----
+  function init() {
+    initAutocomplete('ac-mascota');
+    initAutocomplete('ac-vet');
+    initAutocomplete('ac-servicio');
+    initAutocomplete('ac-express-raza');
+    initAcPreload();
     initFormCita();
+    initExpressCita();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
   }
 })();
 </script>

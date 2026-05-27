@@ -34,4 +34,7 @@ router.put('/citas/:id/confirmar', reqAuth, CitaController.confirmar);
 // PUT /citas/:id/atender - Marcar cita como atendida
 router.put('/citas/:id/atender', reqAuth, CitaController.atender);
 
+// POST /api/citas/express - Registro exprés (cliente + mascota + cita en una transacción)
+router.post('/api/citas/express', reqAuth, CitaController.expressStore);
+
 module.exports = router;

@@ -16,6 +16,9 @@ router.put('/razas/:id', reqAuth, validarRaza, RazaController.update);
 // DELETE /razas/:id - Desactivar raza
 router.delete('/razas/:id', reqAuth, RazaController.destroy);
 
+// GET /api/razas/search - API: búsqueda predictiva de razas (autocomplete)
+router.get('/api/razas/search', reqAuth, RazaController.search);
+
 // GET /api/razas/:idEspecie - API: obtener razas por especie (JSON)
 router.get('/api/razas/:idEspecie', reqAuth, RazaController.porEspecie);
 

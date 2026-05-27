@@ -29,7 +29,7 @@ class HistorialClinicoController {
       if (busqueda) {
         whereClause[Op.or] = [
           { '$mascota.nombre$': { [Op.iLike]: `%${busqueda}%` } },
-          { '$mascota.cliente.nombreCompleto$': { [Op.iLike]: `%${busqueda}%` } },
+          { '$mascota.cliente.nombre_completo$': { [Op.iLike]: `%${busqueda}%` } },
           { diagnostico: { [Op.iLike]: `%${busqueda}%` } },
           { motivoConsulta: { [Op.iLike]: `%${busqueda}%` } },
         ];
@@ -71,6 +71,8 @@ class HistorialClinicoController {
         order: [['fechaRegistro', 'DESC']],
         limit: REGISTROS_POR_PAGINA,
         offset,
+        distinct: true,
+        subQuery: false,
       });
 
       const totalPaginas = Math.ceil(count / REGISTROS_POR_PAGINA);

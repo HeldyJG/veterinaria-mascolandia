@@ -32,4 +32,7 @@ router.delete('/mascotas/:id', reqAuth, MascotaController.destroy);
 // GET /api/mascotas/razas/:idEspecie - API: razas activas por especie (carga dinámica AJAX)
 router.get('/api/mascotas/razas/:idEspecie', reqAuth, MascotaController.getRazasByEspecie);
 
+// GET /api/mascotas/search - API: búsqueda predictiva de mascotas (autocomplete)
+router.get('/api/mascotas/search', reqAuth, MascotaController.search);
+
 module.exports = router;

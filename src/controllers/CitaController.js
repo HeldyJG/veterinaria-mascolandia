@@ -1,4 +1,5 @@
 const { Op } = require('sequelize');
+const sequelize = require('../config/database');
 const { Cita, Mascota, Cliente, Usuario, Servicio, Raza } = require('../models');
 const { isModalRequest, redirectAfterSave } = require('../utils/modalHelpers');
 
@@ -35,7 +36,7 @@ class CitaController {
       if (busqueda) {
         whereClause[Op.or] = [
           { '$mascota.nombre$': { [Op.iLike]: `%${busqueda}%` } },
-          { '$mascota.cliente.nombreCompleto$': { [Op.iLike]: `%${busqueda}%` } },
+          { '$mascota.cliente.nombre_completo$': { [Op.iLike]: `%${busqueda}%` } },
           { '$servicio.nombre$': { [Op.iLike]: `%${busqueda}%` } },
         ];
       }
@@ -69,7 +70,7 @@ class CitaController {
 
       const totalPaginas = Math.ceil(count / REGISTROS_POR_PAGINA);
 
-      const [mascotas, usuarios, servicios] = await Promise.all([
+      const [mascotas, usuarios, servicios, razas] = await Promise.all([
         Mascota.findAll({
           where: { estado: 1 },
           include: [
@@ -80,6 +81,7 @@ class CitaController {
         }),
         Usuario.findAll({ where: { estado: 1 }, order: [['nombre', 'ASC']] }),
         Servicio.findAll({ where: { estado: 1 }, order: [['nombre', 'ASC']] }),
+        Raza.findAll({ where: { estado: 1 }, order: [['nombre', 'ASC']] }),
       ]);
 
       res.render('citas/index', {
@@ -96,6 +98,7 @@ class CitaController {
         mascotas,
         usuarios,
         servicios,
+        razas,
         old: {
           idMascota: req.query.idMascota || '',
           idUsuario: req.query.idUsuario || '',
@@ -477,6 +480,116 @@ class CitaController {
     } catch (error) {
       console.error('Error modal cita:', error);
       return res.status(500).send('Error al cargar el modal');
+    }
+  }
+
+  /**
+   * POST /api/citas/express
+   * Registro exprés: crea Cliente → Mascota → Cita en una sola transacción.
+   * Si algo falla, se hace rollback completo.
+   */
+  static async expressStore(req, res) {
+    const isAjax = req.xhr || req.headers['x-requested-with'] === 'XMLHttpRequest';
+    try {
+      const {
+        dni, nombreCliente, telefono,
+        nombreMascota, idRaza,
+        idUsuario, idServicio,
+        fecha, hora, turno, motivoDetalle,
+      } = req.body;
+
+      // Validaciones báscias
+      if (!dni || !dni.trim()) {
+        throw new Error('El DNI del dueño es obligatorio.');
+      }
+      if (!nombreCliente || !nombreCliente.trim()) {
+        throw new Error('El nombre del dueño es obligatorio.');
+      }
+      if (!telefono || !telefono.trim()) {
+        throw new Error('El celular es obligatorio.');
+      }
+      if (!nombreMascota || !nombreMascota.trim()) {
+        throw new Error('El nombre de la mascota es obligatorio.');
+      }
+      if (!idRaza) {
+        throw new Error('La raza es obligatoria.');
+      }
+      if (!idUsuario) {
+        throw new Error('El veterinario es obligatorio.');
+      }
+      if (!idServicio) {
+        throw new Error('El servicio es obligatorio.');
+      }
+      if (!fecha || !hora || !turno) {
+        throw new Error('Fecha, hora y turno son obligatorios.');
+      }
+
+      const resultado = await sequelize.transaction(async (t) => {
+        // 1. Crear Cliente
+        const cliente = await Cliente.create({
+          nombreCompleto: nombreCliente.trim(),
+          telefono: telefono.trim(),
+          direccion: 'S/N',
+          correo: null,
+          dni: dni.trim(),
+          estado: 1,
+        }, { transaction: t });
+
+        // 2. Crear Mascota
+        const mascota = await Mascota.create({
+          nombre: nombreMascota.trim(),
+          idCliente: cliente.id,
+          idRaza: parseInt(idRaza, 10),
+          sexo: null,
+          fechaNacimiento: null,
+          pesoActual: null,
+          color: null,
+          foto: null,
+          estado: 1,
+        }, { transaction: t });
+
+        // 3. Crear Cita
+        const cita = await Cita.create({
+          idMascota: mascota.id,
+          idUsuario: parseInt(idUsuario, 10),
+          idServicio: parseInt(idServicio, 10),
+          fecha,
+          hora,
+          turno,
+          motivoDetalle: motivoDetalle ? motivoDetalle.trim() : null,
+          estado: 'PENDIENTE',
+        }, { transaction: t });
+
+        return { cliente, mascota, cita };
+      });
+
+      console.log(`Registro exprés OK — Cliente #${resultado.cliente.id}, Mascota #${resultado.mascota.id}, Cita #${resultado.cita.id}`);
+
+      if (isAjax) {
+        return res.json({
+          success: true,
+          message: 'Cliente, mascota y cita registrados correctamente.',
+          data: {
+            idCliente: resultado.cliente.id,
+            idMascota: resultado.mascota.id,
+            idCita: resultado.cita.id,
+          },
+        });
+      }
+
+      req.flash('success', 'Cliente, mascota y cita registrados correctamente.');
+      return res.redirect('/citas');
+    } catch (error) {
+      console.error('Error en registro exprés de cita:', error);
+
+      const errorMsg = error.message || 'Error al procesar el registro exprés. Intente nuevamente.';
+
+      if (isAjax) {
+        return res.status(422).json({ success: false, errors: [errorMsg] });
+      }
+
+      req.flash('error', errorMsg);
+      return res.redirect(buildCitaErrorRedirect(req.body));
     }
   }
 }

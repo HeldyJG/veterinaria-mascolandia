@@ -227,6 +227,33 @@ class ServicioController {
       res.redirect('/servicios');
     }
   }
+
+  /**
+   * GET /api/servicios/search?q=
+   * Busca servicios activos por nombre (autocomplete).
+   */
+  static async search(req, res) {
+    try {
+      const q = req.query.q ? req.query.q.trim() : '';
+
+      const where = { estado: 1 };
+      if (q.length > 0) {
+        where.nombre = { [Op.iLike]: `%${q}%` };
+      }
+
+      const servicios = await Servicio.findAll({
+        where,
+        limit: 10,
+        order: [['nombre', 'ASC']],
+        attributes: ['id', 'nombre', 'precio'],
+      });
+
+      return res.json({ success: true, data: servicios });
+    } catch (error) {
+      console.error('Error al buscar servicios:', error);
+      return res.status(500).json({ success: false, message: error.message });
+    }
+  }
 }
 
 module.exports = ServicioController;

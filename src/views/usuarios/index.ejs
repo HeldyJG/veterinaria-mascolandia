@@ -103,11 +103,10 @@
                     <% if (u.estado === 1 && u.id !== usuarioActualId) { %>
                       <form
                         id="form-desactivar-<%= u.id %>"
-                        action="/usuarios/<%= u.id %>"
+                        action="/usuarios/<%= u.id %>/desactivar"
                         method="POST"
                         style="display: inline;"
                       >
-                        <input type="hidden" name="_method" value="DELETE">
                         <button
                           type="button"
                           class="btn btn-sm btn-danger"

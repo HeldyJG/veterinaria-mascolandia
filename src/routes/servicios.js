@@ -22,4 +22,7 @@ router.put('/servicios/:id', reqAuth, validarServicio, ServicioController.update
 // DELETE /servicios/:id — Eliminar servicio (soft delete)
 router.delete('/servicios/:id', reqAuth, ServicioController.destroy);
 
+// GET /api/servicios/search - API: búsqueda predictiva de servicios (autocomplete)
+router.get('/api/servicios/search', reqAuth, ServicioController.search);
+
 module.exports = router;

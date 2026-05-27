@@ -435,6 +435,41 @@ class MascotaController {
       return res.status(500).json({ success: false, message: 'Error al obtener las razas.' });
     }
   }
+
+  /**
+   * GET /api/mascotas/search?q=
+   * Busca mascotas por nombre, nombre del dueño o DNI del dueño (autocomplete).
+   */
+  static async search(req, res) {
+    try {
+      const q = req.query.q ? req.query.q.trim() : '';
+
+      const where = { estado: 1 };
+      if (q.length > 0) {
+        where[Op.or] = [
+          { nombre: { [Op.iLike]: `%${q}%` } },
+          { '$cliente.nombre_completo$': { [Op.iLike]: `%${q}%` } },
+          { '$cliente.dni$': { [Op.iLike]: `%${q}%` } },
+        ];
+      }
+
+      const mascotas = await Mascota.findAll({
+        where,
+        include: [
+          { model: Cliente, as: 'cliente' },
+          { model: Raza, as: 'raza' },
+        ],
+        limit: 15,
+        order: [['nombre', 'ASC']],
+        subQuery: false,
+      });
+
+      return res.json({ success: true, data: mascotas });
+    } catch (error) {
+      console.error('Error al buscar mascotas:', error);
+      return res.status(500).json({ success: false, message: error.message });
+    }
+  }
 }
 
 module.exports = MascotaController;
